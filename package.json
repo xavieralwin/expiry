@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "node server/index.js",
+    "webhook": "node deploy/webhook-listener.js",
     "deploy:frontend": "gcloud run deploy url-expiry-tracker-frontend --source . --allow-unauthenticated",
     "deploy:frontend:prod": "gcloud run deploy url-expiry-tracker-frontend --source . --region us-central1 --project url-tracker-85c0f --allow-unauthenticated --quiet"
   },
