@@ -1,0 +1,22 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: url-expiry-tracker-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:8080"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: url-expiry-tracker-backend
+    restart: unless-stopped
+    environment:
+      - PORT=3001
+    volumes:
+      - ./server/database.sqlite:/app/server/database.sqlite

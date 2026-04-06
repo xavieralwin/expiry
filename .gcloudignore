@@ -1,0 +1,16 @@
+.git
+.gitignore
+.firebase
+node_modules
+dist
+.DS_Store
+*.log
+*.local
+
+# Local backend artifacts should not be sent to the frontend Cloud Run build.
+server/database.sqlite
+deploy.txt
+output.json
+policy.json
+policy_clean.json
+pss.txt

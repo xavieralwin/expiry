@@ -1,0 +1,29 @@
+{
+  "length": 8750,
+  "headers": [
+    "Full & Complete URL",
+    "Page Type (HTML, PDF, etc.)",
+    "Page Status (Live, Deleted, etc.)",
+    "Created Date",
+    "Last Updated Date",
+    "Expiry Date",
+    "Content Owner",
+    "Content owner SOEID",
+    "Content Owner Email ID",
+    "Request ID/Notes",
+    "ETA For Fixes"
+  ],
+  "firstRow": {
+    "Full & Complete URL": "https://www1.citibank.com.sg/gcb/credit_cards/mastercard_cashback",
+    "Page Type (HTML, PDF, etc.)": "WEB",
+    "Page Status (Live, Deleted, etc.)": "Deleted (404)",
+    "Created Date": "",
+    "Last Updated Date": "",
+    "Expiry Date": "",
+    "Content Owner": "Lee, Se Eun / sl94762",
+    "Content owner SOEID": "sl94762",
+    "Content Owner Email ID": "",
+    "Request ID/Notes": "",
+    "ETA For Fixes": ""
+  }
+}

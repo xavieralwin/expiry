@@ -1,0 +1,23 @@
+# URL Expiry Tracker - Deployment Guide
+
+Whenever you make changes to the code (in the `src/` folder) and want to push the newly updated app to the live website, follow these steps:
+
+1. **Open your terminal** and make sure you are inside the project folder:
+   ```bash
+   cd d:\VsProj\Tool\url-expiry-tracker
+   ```
+
+2. **Run the Deploy Script:**
+   I have added a custom `deploy` script to your `package.json` that automates everything securely. Just run:
+   ```bash
+   npm run deploy
+   ```
+
+### What happens behind the scenes?
+- `npm run deploy` will first automatically run `vite build` to compile your latest React code into an optimized bundle in the `dist/` folder.
+- Then, it tells Firebase CLI to upload that `dist/` folder to your live Firebase web app domain.
+
+*Note: Since NPM scripts run under `cmd.exe` directly on Windows, using `npm run deploy` completely bypasses any nasty PowerShell execution policy blocks!*
+
+
+npx gcloud run deploy url-expiry-tracker --source . --region us-central1 --allow-unauthenticated --project url-tracker-85c0f --quiet
