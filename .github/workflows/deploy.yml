@@ -16,6 +16,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2222
           script: |
             # Repository path on your remote server
             REPO_DIR="/home/alwin/expiry"
