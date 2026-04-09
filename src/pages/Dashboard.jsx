@@ -20,7 +20,8 @@ export default function Dashboard() {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  useEffect(() => {
+  const loadRecords = () => {
+    setLoading(true);
     fetchRecords()
       .then(fetched => {
         setRecords(fetched);
@@ -30,6 +31,10 @@ export default function Dashboard() {
         console.error("Fetch error:", err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadRecords();
   }, []);
 
   const handleDelete = async (id) => {
@@ -214,14 +219,14 @@ export default function Dashboard() {
         <RecordForm 
           initialData={editingRecord}
           onClose={() => setShowForm(false)} 
-          onSave={() => {}} 
+          onSave={() => loadRecords()} 
         />
       )}
 
       {showImportForm && (
         <ImportForm 
           onClose={() => setShowImportForm(false)} 
-          onSave={() => setShowImportForm(false)} 
+          onSave={() => { loadRecords(); setShowImportForm(false); }} 
         />
       )}
     </div>
