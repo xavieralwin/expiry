@@ -1,0 +1,35 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH and Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            # Repository path on your remote server
+            REPO_DIR="/home/alwin/expiry"
+            
+            if [ ! -d "$REPO_DIR" ]; then
+              echo "Error: Project directory $REPO_DIR not found!"
+              exit 1
+            fi
+
+            cd $REPO_DIR
+            
+            # Pull latest changes from git
+            git reset --hard
+            git pull origin main
+            
+            # Restart with docker compose
+            docker compose up -d --build
