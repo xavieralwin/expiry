@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchRecords, batchImportCustomAPI } from '../lib/api';
 
-export default function ImportForm({ onClose, onSave }) {
+export default function ImportForm({ onClose, onSave, defaultPageType }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [importing, setImporting] = useState(false);
@@ -90,6 +90,7 @@ export default function ImportForm({ onClose, onSave }) {
           const emailKey = keys.find(k => k.toLowerCase().includes('email'));
           const typeKey = keys.find(k => k.toLowerCase().includes('type'));
           const statusKey = keys.find(k => k.toLowerCase().includes('status'));
+          const envKey = keys.find(k => k.toLowerCase().includes('env'));
           // Strict expiry finding to avoid "Created Date"
           const expiryKey = keys.find(k => k.toLowerCase().includes('expiry') && k.toLowerCase().includes('date'));
           const ownerKey = keys.find(k => k.toLowerCase().includes('owner') && !k.toLowerCase().includes('soeid') && !k.toLowerCase().includes('email'));
@@ -99,9 +100,10 @@ export default function ImportForm({ onClose, onSave }) {
             url: urlVal,
             ownerSoeid: soeidKey ? String(row[soeidKey]) : '',
             ownerEmail: emailKey ? String(row[emailKey]) : '',
-            pageType: typeKey ? String(row[typeKey]) : 'HTML',
+            pageType: defaultPageType || (typeKey ? String(row[typeKey]) : 'HTML'),
             status: statusKey && String(row[statusKey]).toLowerCase().includes('delete') ? 'Deleted' : 'Live',
             ownerName: ownerKey ? String(row[ownerKey]) : '',
+            environment: envKey ? String(row[envKey]) : 'ICMS',
             expiryDate: expiryKey ? parseExcelDate(row[expiryKey]) : '',
             createdAt: new Date().toISOString()
           };

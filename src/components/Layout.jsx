@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
-import { Activity, Clock, List, LogOut } from 'lucide-react';
+import { Activity, Clock, List, LogOut, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Layout() {
@@ -30,6 +30,14 @@ export default function Layout() {
           >
             <List className="w-5 h-5" />
             <span>All Records</span>
+          </NavLink>
+
+          <NavLink 
+            to="/vanity" 
+            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-purple-800/50 text-purple-200 font-semibold' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+          >
+            <Globe className="w-5 h-5" />
+            <span>Vanity URLs</span>
           </NavLink>
           
           <NavLink 

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import ExpiringSoon from './pages/ExpiringSoon';
+import VanityURLs from './pages/VanityURLs';
 import Login from './pages/Login';
 
 function ProtectedRoute({ children }) {
@@ -34,6 +35,7 @@ function App() {
       >
         <Route index element={<Dashboard />} />
         <Route path="expiring" element={<ExpiringSoon />} />
+        <Route path="vanity" element={<VanityURLs />} />
       </Route>
     </Routes>
   );

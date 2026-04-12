@@ -6,7 +6,7 @@ import { exportToCsv } from '../lib/exportCsv';
 import RecordForm from '../components/RecordForm';
 import ImportForm from '../components/ImportForm';
 
-export default function Dashboard() {
+export default function VanityURLs() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -54,8 +54,8 @@ export default function Dashboard() {
   };
 
   let filteredRecords = records.filter(record => {
-    // Hide Vanity URLs from main Dashboard
-    if (record.pageType === 'Vanity URL') return false;
+    // Only show Vanity URLs
+    if (record.pageType !== 'Vanity URL') return false;
     
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
@@ -86,8 +86,8 @@ export default function Dashboard() {
     <div className="p-8">
       <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">All Records</h2>
-          <p className="text-slate-500 mt-1">Manage and track all URL expiry dates</p>
+          <h2 className="text-3xl font-bold text-slate-900">Vanity URLs</h2>
+          <p className="text-slate-500 mt-1">Manage and track all Vanity URLs</p>
         </div>
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
           <div className="relative">
@@ -109,7 +109,7 @@ export default function Dashboard() {
             <span>Import Data</span>
           </button>
           <button 
-            onClick={() => exportToCsv('all_records.csv', filteredRecords)}
+            onClick={() => exportToCsv('vanity_records.csv', filteredRecords)}
             className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all flex items-center gap-2 cursor-pointer"
           >
             <Download className="w-4 h-4" />
@@ -228,6 +228,7 @@ export default function Dashboard() {
           initialData={editingRecord}
           onClose={() => setShowForm(false)} 
           onSave={() => loadRecords()} 
+          defaultPageType="Vanity URL"
         />
       )}
 
@@ -235,6 +236,7 @@ export default function Dashboard() {
         <ImportForm 
           onClose={() => setShowImportForm(false)} 
           onSave={() => { loadRecords(); setShowImportForm(false); }} 
+          defaultPageType="Vanity URL"
         />
       )}
     </div>

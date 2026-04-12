@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { fetchRecords } from '../lib/api';
+import { fetchRecords, sendExpiryNotifications } from '../lib/api';
 import { format, differenceInDays } from 'date-fns';
-import { ExternalLink, AlertTriangle, Download, Search } from 'lucide-react';
+import { ExternalLink, AlertTriangle, Download, Search, Mail } from 'lucide-react';
 import { exportToCsv } from '../lib/exportCsv';
 
 export default function ExpiringSoon() {
@@ -9,6 +9,7 @@ export default function ExpiringSoon() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const rowsPerPage = 50;
 
   useEffect(() => {
@@ -44,7 +45,8 @@ export default function ExpiringSoon() {
       (record.ownerName || '').toLowerCase().includes(term) ||
       (record.ownerSoeid || '').toLowerCase().includes(term) ||
       (record.ownerEmail || '').toLowerCase().includes(term) ||
-      (record.pageType || '').toLowerCase().includes(term)
+      (record.pageType || '').toLowerCase().includes(term) ||
+      (record.environment || '').toLowerCase().includes(term)
     );
   });
 
@@ -59,6 +61,28 @@ export default function ExpiringSoon() {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedRecords = filteredDisplayRecords.slice(startIndex, startIndex + rowsPerPage);
   const totalPages = Math.ceil(filteredDisplayRecords.length / rowsPerPage);
+
+  const handleSendAlerts = async () => {
+    if (filteredDisplayRecords.length === 0) {
+      alert("No expiring records currently displayed to send.");
+      return;
+    }
+    
+    setSendingEmail(true);
+    try {
+      const response = await sendExpiryNotifications(filteredDisplayRecords);
+      if (response.previewUrl) {
+         console.log("Email Preview URL:", response.previewUrl);
+         alert("Alert sent successfully! (Check console for ethereal preview URL)");
+      } else {
+         alert("Alert sent successfully!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send alerts. Check console for details.");
+    }
+    setSendingEmail(false);
+  };
 
   return (
     <div className="p-8">
@@ -81,6 +105,14 @@ export default function ExpiringSoon() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           </div>
           <button 
+            onClick={handleSendAlerts}
+            disabled={sendingEmail}
+            className="bg-white border border-orange-200 hover:bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-medium shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+          >
+            <Mail className="w-4 h-4" />
+            <span>{sendingEmail ? 'Sending...' : 'Send Alerts'}</span>
+          </button>
+          <button 
             onClick={() => exportToCsv('expiring_records.csv', filteredDisplayRecords)}
             className="bg-white border border-orange-200 hover:bg-orange-100 text-orange-700 px-4 py-2 rounded-lg font-medium shadow-sm transition-all flex items-center gap-2 cursor-pointer"
           >
@@ -99,6 +131,7 @@ export default function ExpiringSoon() {
             <tr className="border-b border-orange-200 bg-orange-50/50 text-slate-500 text-sm">
               <th className="p-4 font-medium">Full & Complete URL</th>
               <th className="p-4 font-medium">Page Type</th>
+              <th className="p-4 font-medium min-w-[100px]">Environment</th>
               <th className="p-4 font-medium">Owner SOEID & Email</th>
               <th className="p-4 font-medium">Content Owner</th>
               <th className="p-4 font-medium">Expiry Date</th>
@@ -122,6 +155,7 @@ export default function ExpiringSoon() {
                   </a>
                 </td>
                 <td className="p-4 text-slate-600 font-medium">{record.pageType || '-'}</td>
+                <td className="p-4 text-slate-600 font-medium">{record.environment || 'ICMS'}</td>
                 <td className="p-4">
                   <div className="flex flex-col gap-1 w-48 truncate">
                     <span className="text-slate-700 font-medium">{record.ownerSoeid || '-'}</span>
