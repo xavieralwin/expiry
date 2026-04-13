@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchRecords, batchImportCustomAPI } from '../lib/api';
+import { trackButtonClick } from '../lib/analytics';
 
 export default function ImportForm({ onClose, onSave, defaultPageType }) {
   const [file, setFile] = useState(null);
@@ -189,7 +190,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
                 <span>{typeof progress.current === 'string' ? '' : `${Math.round((progress.current / (progress.total || 1)) * 100)}%`}</span>
               </div>
               <div className="w-full bg-purple-200 rounded-full h-2.5">
-                <div className="bg-gradient-to-r from-purple-500 to-indigo-600 h-2.5 rounded-full" style={{ width: typeof progress.current === 'string' ? '100%' : `${Math.round((progress.current / (progress.total || 1)) * 100)}%` }}></div>
+                <div className="bg-[#a78bfa] h-2.5 rounded-full" style={{ width: typeof progress.current === 'string' ? '100%' : `${Math.round((progress.current / (progress.total || 1)) * 100)}%` }}></div>
               </div>
               <p className="text-xs text-purple-700 pt-1">
                 ✅ Imported: {progress.success} | ❌ Skipped (duplicates/errors): {progress.failed}
@@ -209,12 +210,12 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           )}
           
           <div className="flex justify-end space-x-3 pt-2">
-            <button type="button" onClick={onClose} disabled={importing} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium cursor-pointer transition-colors disabled:opacity-50">Close</button>
+            <button type="button" onClick={() => { trackButtonClick('ImportForm - Close'); onClose(); }} disabled={importing} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium cursor-pointer transition-colors disabled:opacity-50">Close</button>
             <button 
               type="button" 
-              onClick={handleImport}
+              onClick={() => { trackButtonClick('ImportForm - Start Import'); handleImport(); }}
               disabled={!file || importing} 
-              className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-purple-200 transition-all disabled:opacity-50 cursor-pointer"
+              className="px-6 py-2.5 bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 rounded-xl font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               {importing ? 'Importing...' : 'Start Import'}
             </button>

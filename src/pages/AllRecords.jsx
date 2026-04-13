@@ -5,8 +5,9 @@ import { Trash2, Edit, ExternalLink, Download, Upload, Search } from 'lucide-rea
 import { exportToCsv } from '../lib/exportCsv';
 import RecordForm from '../components/RecordForm';
 import ImportForm from '../components/ImportForm';
+import { trackButtonClick } from '../lib/analytics';
 
-export default function Dashboard() {
+export default function AllRecords() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -102,22 +103,22 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-3">
           <button 
-            onClick={() => setShowImportForm(true)}
-            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            onClick={() => { trackButtonClick('Dashboard - Import Data'); setShowImportForm(true); }}
+            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
           >
             <Upload className="w-4 h-4" />
             <span>Import Data</span>
           </button>
           <button 
-            onClick={() => exportToCsv('all_records.csv', filteredRecords)}
-            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            onClick={() => { trackButtonClick('Dashboard - Export CSV'); exportToCsv('all_records.csv', filteredRecords); }}
+            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>Export CSV</span>
           </button>
           <button 
-            onClick={() => { setEditingRecord(null); setShowForm(true); }}
-            className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm shadow-purple-200 transition-all flex items-center gap-2 cursor-pointer"
+            onClick={() => { trackButtonClick('Dashboard - Add Record'); setEditingRecord(null); setShowForm(true); }}
+            className="bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
           >
             <span>+ Add Record</span>
           </button>
@@ -158,7 +159,7 @@ export default function Dashboard() {
                   {record.environment || 'ICMS'}
                 </td>
                 <td className="p-4">
-                  <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium w-max ${record.status === 'Live' || record.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                  <span className={`inline-flex px-2 py-1 rounded text-xs font-bold w-max ${record.status === 'Live' || record.status === 'Active' ? 'bg-[#86efac] text-emerald-950' : 'bg-[#fbcfe8] text-pink-950'}`}>
                     {record.status || 'Live'}
                   </span>
                 </td>
@@ -179,10 +180,10 @@ export default function Dashboard() {
                   ) : '-'}
                 </td>
                 <td className="p-4 text-right space-x-2">
-                  <button onClick={() => handleEdit(record)} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" title="Edit">
+                  <button onClick={() => { trackButtonClick('Dashboard - Edit Record'); handleEdit(record); }} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" title="Edit">
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(record.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Delete">
+                  <button onClick={() => { trackButtonClick('Dashboard - Delete Record'); handleDelete(record.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Delete">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>

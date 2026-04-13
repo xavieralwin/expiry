@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { addRecord, updateRecord, fetchRecords } from '../lib/api';
+import { trackButtonClick } from '../lib/analytics';
 
 export default function RecordForm({ initialData, onClose, onSave, defaultPageType }) {
   const defaultFormState = {
@@ -26,6 +27,7 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
     e.preventDefault();
     setSaving(true);
     setError('');
+    trackButtonClick(initialData ? 'RecordForm - Save Edit' : 'RecordForm - Save New');
     
     try {
       // Check for unique URL
@@ -128,8 +130,8 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
           </div>
 
           <div className="pt-4 flex justify-end space-x-3 border-t border-slate-100">
-            <button type="button" onClick={onClose} disabled={saving} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">Cancel</button>
-            <button type="submit" disabled={saving} className="px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg font-medium shadow-sm shadow-purple-200 transition-all disabled:opacity-50 cursor-pointer">
+            <button type="button" onClick={() => { trackButtonClick('RecordForm - Cancel'); onClose(); }} disabled={saving} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">Cancel</button>
+            <button type="submit" disabled={saving} className="px-6 py-2 bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 rounded-lg font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer">
               {saving ? 'Saving...' : 'Save Record'}
             </button>
           </div>
