@@ -43,3 +43,13 @@ export async function batchImportCustomAPI(items) {
   if (!response.ok) throw new Error('Failed to import records');
   return response.json();
 }
+
+export async function sendExpiryNotifications(records) {
+  const response = await fetch(`${API_BASE}/urls/notify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ records })
+  });
+  if (!response.ok) throw new Error('Failed to send notifications');
+  return response.json();
+}

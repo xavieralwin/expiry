@@ -26,9 +26,17 @@ export async function initDb() {
       status TEXT,
       expiryDate TEXT,
       createdAt TEXT,
-      updatedAt TEXT
+      updatedAt TEXT,
+      environment TEXT
     )
   `);
+
+  const tableInfo = await db.all("PRAGMA table_info(urls)");
+  const hasEnvironment = tableInfo.some(col => col.name === 'environment');
+  if (!hasEnvironment) {
+    await db.exec("ALTER TABLE urls ADD COLUMN environment TEXT DEFAULT 'ICMS'");
+  }
+
   console.log('Database initialized');
   return db;
 }

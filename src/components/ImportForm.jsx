@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchRecords, batchImportCustomAPI } from '../lib/api';
+import { trackButtonClick } from '../lib/analytics';
 
-export default function ImportForm({ onClose, onSave }) {
+export default function ImportForm({ onClose, onSave, defaultPageType }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
   const [importing, setImporting] = useState(false);
@@ -90,6 +91,7 @@ export default function ImportForm({ onClose, onSave }) {
           const emailKey = keys.find(k => k.toLowerCase().includes('email'));
           const typeKey = keys.find(k => k.toLowerCase().includes('type'));
           const statusKey = keys.find(k => k.toLowerCase().includes('status'));
+          const envKey = keys.find(k => k.toLowerCase().includes('env'));
           // Strict expiry finding to avoid "Created Date"
           const expiryKey = keys.find(k => k.toLowerCase().includes('expiry') && k.toLowerCase().includes('date'));
           const ownerKey = keys.find(k => k.toLowerCase().includes('owner') && !k.toLowerCase().includes('soeid') && !k.toLowerCase().includes('email'));
@@ -99,9 +101,10 @@ export default function ImportForm({ onClose, onSave }) {
             url: urlVal,
             ownerSoeid: soeidKey ? String(row[soeidKey]) : '',
             ownerEmail: emailKey ? String(row[emailKey]) : '',
-            pageType: typeKey ? String(row[typeKey]) : 'HTML',
+            pageType: defaultPageType || (typeKey ? String(row[typeKey]) : 'HTML'),
             status: statusKey && String(row[statusKey]).toLowerCase().includes('delete') ? 'Deleted' : 'Live',
             ownerName: ownerKey ? String(row[ownerKey]) : '',
+            environment: envKey ? String(row[envKey]) : 'ICMS',
             expiryDate: expiryKey ? parseExcelDate(row[expiryKey]) : '',
             createdAt: new Date().toISOString()
           };
@@ -187,7 +190,7 @@ export default function ImportForm({ onClose, onSave }) {
                 <span>{typeof progress.current === 'string' ? '' : `${Math.round((progress.current / (progress.total || 1)) * 100)}%`}</span>
               </div>
               <div className="w-full bg-purple-200 rounded-full h-2.5">
-                <div className="bg-gradient-to-r from-purple-500 to-indigo-600 h-2.5 rounded-full" style={{ width: typeof progress.current === 'string' ? '100%' : `${Math.round((progress.current / (progress.total || 1)) * 100)}%` }}></div>
+                <div className="bg-[#a78bfa] h-2.5 rounded-full" style={{ width: typeof progress.current === 'string' ? '100%' : `${Math.round((progress.current / (progress.total || 1)) * 100)}%` }}></div>
               </div>
               <p className="text-xs text-purple-700 pt-1">
                 ✅ Imported: {progress.success} | ❌ Skipped (duplicates/errors): {progress.failed}
@@ -207,12 +210,12 @@ export default function ImportForm({ onClose, onSave }) {
           )}
           
           <div className="flex justify-end space-x-3 pt-2">
-            <button type="button" onClick={onClose} disabled={importing} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium cursor-pointer transition-colors disabled:opacity-50">Close</button>
+            <button type="button" onClick={() => { trackButtonClick('ImportForm - Close'); onClose(); }} disabled={importing} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium cursor-pointer transition-colors disabled:opacity-50">Close</button>
             <button 
               type="button" 
-              onClick={handleImport}
+              onClick={() => { trackButtonClick('ImportForm - Start Import'); handleImport(); }}
               disabled={!file || importing} 
-              className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-purple-200 transition-all disabled:opacity-50 cursor-pointer"
+              className="px-6 py-2.5 bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 rounded-xl font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               {importing ? 'Importing...' : 'Start Import'}
             </button>

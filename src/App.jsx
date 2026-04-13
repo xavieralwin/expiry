@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
+import OverviewDashboard from './pages/OverviewDashboard';
+import AllRecords from './pages/AllRecords';
 import ExpiringSoon from './pages/ExpiringSoon';
+import VanityURLs from './pages/VanityURLs';
 import Login from './pages/Login';
 
 function ProtectedRoute({ children }) {
@@ -32,8 +34,10 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Dashboard />} />
+        <Route index element={<OverviewDashboard />} />
+        <Route path="records" element={<AllRecords />} />
         <Route path="expiring" element={<ExpiringSoon />} />
+        <Route path="vanity" element={<VanityURLs />} />
       </Route>
     </Routes>
   );
