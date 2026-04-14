@@ -16,6 +16,8 @@ services:
       dockerfile: Dockerfile.backend
     container_name: url-expiry-tracker-backend
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       - PORT=3001
     volumes:

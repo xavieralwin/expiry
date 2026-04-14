@@ -158,38 +158,45 @@ app.post('/api/urls/notify', async (req, res) => {
     // Generate HTML for the email
     const rowsHtml = records.map(r => `
       <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">
-          <a href="${r.url}" style="color: #6366f1;">${r.url}</a>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; word-break: break-all;">
+          <a href="${r.url}" style="color: #a78bfa; text-decoration: none;">${r.url}</a>
         </td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.ownerName || '-'}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.ownerEmail || '-'}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd; color: #dc2626; font-weight: bold;">
+        <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #475569; word-wrap: break-word;">${r.ownerName || '-'}</td>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #475569; word-wrap: break-word;">${r.ownerEmail || '-'}</td>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #f97316; font-weight: bold; white-space: nowrap;">
           ${r.expiryDate ? new Date(r.expiryDate).toLocaleDateString() : '-'}
         </td>
       </tr>
     `).join('');
 
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; color: #333;">
-        <h2 style="color: #ea580c;">🚨 Action Required: Expiring URLs</h2>
-        <p>The following URLs are expiring soon and require review:</p>
-        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 20px;">
-          <thead>
-            <tr style="background-color: #f9fafb;">
-              <th style="padding: 10px; border-bottom: 2px solid #ddd;">URL</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd;">Content Owner</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd;">Owner Email</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd;">Expiry Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-        <p>Please take action and renew or delete these pages in the system.</p>
-        <p style="font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 10px;">
-          This is an automated notification from the URL Expiry Tracker system.
-        </p>
+      <div style="font-family: 'Inter', Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; font-size: 14px;">
+        <div style="max-width: 800px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; padding: 32px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <h2 style="color: #f97316; margin-top: 0; font-size: 20px;">
+            🚨 Action Required: Expiring URLs
+          </h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.5;">The following URLs are expiring soon and require your review:</p>
+          
+          <table style="width: 100%; border-collapse: collapse; text-align: left; margin: 24px 0; table-layout: fixed;">
+            <thead>
+              <tr style="background-color: #f8fafc;">
+                <th style="width: 45%; padding: 10px 14px; border-bottom: 2px solid #e2e8f0; font-size: 13px; color: #1e293b; font-weight: 600;">URL</th>
+                <th style="width: 25%; padding: 10px 14px; border-bottom: 2px solid #e2e8f0; font-size: 13px; color: #1e293b; font-weight: 600;">Content Owner</th>
+                <th style="width: 15%; padding: 10px 14px; border-bottom: 2px solid #e2e8f0; font-size: 13px; color: #1e293b; font-weight: 600;">Owner Email</th>
+                <th style="width: 15%; padding: 10px 14px; border-bottom: 2px solid #e2e8f0; font-size: 13px; color: #1e293b; font-weight: 600;">Expiry Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          
+          <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 32px;">Please take action to renew or delete these pages in the system.</p>
+          
+          <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 24px;">
+            This is an automated notification from the URL Expiry Tracker.
+          </div>
+        </div>
       </div>
     `;
 
