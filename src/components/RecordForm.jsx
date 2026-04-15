@@ -11,7 +11,8 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
     status: 'Live',
     expiryDate: '',
     ownerName: '',
-    environment: 'ICMS'
+    environment: 'ICMS',
+    landingUrl: ''
   };
 
   const [formData, setFormData] = useState(initialData ? { ...defaultFormState, ...initialData } : defaultFormState);
@@ -73,6 +74,14 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
             <label className="block text-sm font-medium text-slate-700 mb-1">Full & Complete URL (Must be unique)</label>
             <input type="url" name="url" required value={formData.url} onChange={handleChange} placeholder="https://www.citibank.com.sg/..." className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
           </div>
+
+          {formData.pageType === 'Vanity URL' && (
+            <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Landing URL (For Vanity URLs)</label>
+              <input type="text" name="landingUrl" value={formData.landingUrl} onChange={handleChange} placeholder="e.g. www.100gourmet.sg/" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all bg-white" />
+              <p className="text-xs text-slate-500 mt-1">The actual destination the vanity URL redirects to.</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>

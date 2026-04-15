@@ -36,6 +36,11 @@ export async function initDb() {
   if (!hasEnvironment) {
     await db.exec("ALTER TABLE urls ADD COLUMN environment TEXT DEFAULT 'ICMS'");
   }
+  
+  const hasLandingUrl = tableInfo.some(col => col.name === 'landingUrl');
+  if (!hasLandingUrl) {
+    await db.exec("ALTER TABLE urls ADD COLUMN landingUrl TEXT");
+  }
 
   console.log('Database initialized');
   return db;

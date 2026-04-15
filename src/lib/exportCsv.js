@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import * as XLSX from 'xlsx';
 
 export function exportToCsv(filename, rows) {
   if (!rows || !rows.length) {
@@ -6,7 +7,7 @@ export function exportToCsv(filename, rows) {
     return;
   }
   
-  const headers = ['Full & Complete URL', 'Content owner SOEID', 'Content Owner Email ID', 'Page Type', 'Page Status', 'Expiry Date', 'Content Owner'];
+  const headers = ['Full & Complete URL', 'Landing URL', 'Content owner SOEID', 'Content Owner Email ID', 'Page Type', 'Page Status', 'Expiry Date', 'Content Owner'];
   
   const csvContent = [
     headers.join(','),
@@ -14,6 +15,7 @@ export function exportToCsv(filename, rows) {
       const expiryDate = r.expiryDate ? format(new Date(r.expiryDate), 'yyyy-MM-dd') : '';
       return [
         `"${r.url || ''}"`,
+        `"${r.landingUrl || ''}"`,
         `"${(r.ownerSoeid || '').replace(/"/g, '""')}"`,
         `"${(r.ownerEmail || '').replace(/"/g, '""')}"`,
         `"${r.pageType || ''}"`,
@@ -35,4 +37,28 @@ export function exportToCsv(filename, rows) {
     link.click();
     document.body.removeChild(link);
   }
+}
+
+export function exportToXlsx(filename, rows) {
+  if (!rows || !rows.length) {
+    alert('No records to download');
+    return;
+  }
+
+  const worksheetData = rows.map(r => ({
+    'Full & Complete URL': r.url || '',
+    'Landing URL': r.landingUrl || '',
+    'Content owner SOEID': r.ownerSoeid || '',
+    'Content Owner Email ID': r.ownerEmail || '',
+    'Page Type': r.pageType || '',
+    'Page Status': r.status || '',
+    'Expiry Date': r.expiryDate ? format(new Date(r.expiryDate), 'yyyy-MM-dd') : '',
+    'Content Owner': r.ownerName || ''
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Vanity URLs');
+  
+  XLSX.writeFile(workbook, filename);
 }

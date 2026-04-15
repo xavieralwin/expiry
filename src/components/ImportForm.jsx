@@ -92,6 +92,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           const typeKey = keys.find(k => k.toLowerCase().includes('type'));
           const statusKey = keys.find(k => k.toLowerCase().includes('status'));
           const envKey = keys.find(k => k.toLowerCase().includes('env'));
+          const landingKey = keys.find(k => k.toLowerCase().includes('landing'));
           // Strict expiry finding to avoid "Created Date"
           const expiryKey = keys.find(k => k.toLowerCase().includes('expiry') && k.toLowerCase().includes('date'));
           const ownerKey = keys.find(k => k.toLowerCase().includes('owner') && !k.toLowerCase().includes('soeid') && !k.toLowerCase().includes('email'));
@@ -99,6 +100,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           // Basic map
           const mappedRecord = {
             url: urlVal,
+            landingUrl: landingKey ? String(row[landingKey]) : '',
             ownerSoeid: soeidKey ? String(row[soeidKey]) : '',
             ownerEmail: emailKey ? String(row[emailKey]) : '',
             pageType: defaultPageType || (typeKey ? String(row[typeKey]) : 'HTML'),
@@ -120,7 +122,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           batchCount++;
 
           if (batchCount === 500) {
-            await batchImportCustomAPI(batch);
+              await batchImportCustomAPI(batch);
             batch = [];
             batchCount = 0;
           }
@@ -136,7 +138,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
 
       // Commit any remaining records
       if (batchCount > 0) {
-        await batchImportCustomAPI(batch);
+          await batchImportCustomAPI(batch);
       }
 
       if (failures > 0) {
