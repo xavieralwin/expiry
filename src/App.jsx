@@ -6,6 +6,7 @@ import AllRecords from './pages/AllRecords';
 import ExpiringSoon from './pages/ExpiringSoon';
 import VanityURLs from './pages/VanityURLs';
 import Login from './pages/Login';
+import { trackUserVisit } from './lib/analytics';
 
 function ProtectedRoute({ children }) {
   const isAuth = localStorage.getItem('isAuthenticated') === 'true';
@@ -19,8 +20,19 @@ function ProtectedRoute({ children }) {
 function App() {
   const location = useLocation();
 
-  // Analytics removed
+  useEffect(() => {
+    // Check and track if the user is a new or repeated user
+    trackUserVisit();
+  }, []);
 
+  useEffect(() => {
+    // Record page view on path change
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'page_view', {
+        page_path: location.pathname
+      });
+    }
+  }, [location.pathname]);
 
   return (
     <Routes>

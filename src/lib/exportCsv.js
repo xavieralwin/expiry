@@ -7,7 +7,7 @@ export function exportToCsv(filename, rows) {
     return;
   }
   
-  const headers = ['Full & Complete URL', 'Landing URL', 'Content owner SOEID', 'Content Owner Email ID', 'Page Type', 'Page Status', 'Expiry Date', 'Content Owner'];
+  const headers = ['Full & Complete URL', 'Landing URL', 'Content owner SOEID', 'Content Owner Email ID', 'Page Type', 'Environment', 'Page Status', 'Expiry Date', 'Content Owner'];
   
   const csvContent = [
     headers.join(','),
@@ -19,6 +19,7 @@ export function exportToCsv(filename, rows) {
         `"${(r.ownerSoeid || '').replace(/"/g, '""')}"`,
         `"${(r.ownerEmail || '').replace(/"/g, '""')}"`,
         `"${r.pageType || ''}"`,
+        `"${r.environment || ''}"`,
         `"${r.status || ''}"`,
         `"${expiryDate}"`,
         `"${(r.ownerName || '').replace(/"/g, '""')}"`
@@ -51,6 +52,7 @@ export function exportToXlsx(filename, rows) {
     'Content owner SOEID': r.ownerSoeid || '',
     'Content Owner Email ID': r.ownerEmail || '',
     'Page Type': r.pageType || '',
+    'Environment': r.environment || '',
     'Page Status': r.status || '',
     'Expiry Date': r.expiryDate ? format(new Date(r.expiryDate), 'yyyy-MM-dd') : '',
     'Content Owner': r.ownerName || ''
