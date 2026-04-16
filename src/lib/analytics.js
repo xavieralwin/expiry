@@ -16,7 +16,7 @@ export const trackButtonClick = (buttonName, category = 'Button Click') => {
 
 export const trackUserVisit = async () => {
   if (typeof window === 'undefined') return;
-  
+
   const hasVisited = localStorage.getItem('hasVisitedBefore');
   const userType = hasVisited ? 'Repeated User' : 'New User';
 
