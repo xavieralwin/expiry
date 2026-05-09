@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
-import { Activity, Clock, List, LogOut, Globe, LayoutDashboard } from 'lucide-react';
+import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { trackButtonClick } from '../lib/analytics';
 
@@ -51,6 +51,15 @@ export default function Layout() {
           >
             <Globe className="w-5 h-5" />
             <span>Vanity URLs</span>
+          </NavLink>
+
+          <NavLink 
+            to="/akamai" 
+            onClick={() => trackButtonClick('Sidebar - Akamai Redirects')}
+            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-[#93c5fd] text-blue-950 font-bold shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}
+          >
+            <Network className="w-5 h-5" />
+            <span>Akamai</span>
           </NavLink>
           
           <NavLink 

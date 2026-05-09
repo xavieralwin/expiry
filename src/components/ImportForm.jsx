@@ -67,7 +67,8 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
       // OPTIMIZATION: Cache existing URLs to avoid 8000+ individual queries
       setProgress(prev => ({ ...prev, current: 'Fetching existing data...' }));
       const existingSnapshot = await fetchRecords();
-      const existingUrls = new Set(existingSnapshot.map(d => d.url));
+      const existingAkamaiUrls = new Set(existingSnapshot.filter(d => d.pageType === 'Akamai 301 Redirect').map(d => d.url));
+      const existingOtherUrls = new Set(existingSnapshot.filter(d => d.pageType !== 'Akamai 301 Redirect').map(d => d.url));
       
       let successes = 0;
       let failures = 0;
@@ -111,13 +112,16 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
             createdAt: new Date().toISOString()
           };
 
-          if (existingUrls.has(urlVal)) {
-            throw new Error(`Duplicate URL exists: ${urlVal.substring(0,30)}...`);
+          const isAkamai = mappedRecord.pageType === 'Akamai 301 Redirect';
+          const targetSet = isAkamai ? existingAkamaiUrls : existingOtherUrls;
+
+          if (targetSet.has(urlVal)) {
+            throw new Error(`Duplicate URL exists in this list: ${urlVal.substring(0,30)}...`);
           }
 
           // Queue in batch
           batch.push(mappedRecord);
-          existingUrls.add(urlVal); // Prevent duplicates within the same import file
+          targetSet.add(urlVal); // Prevent duplicates within the same import file
           successes++;
           batchCount++;
 

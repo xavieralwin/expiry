@@ -201,7 +201,7 @@ export default function VanityURLs() {
                     </span>
                   ) : '-'}
                 </td>
-                <td className="p-4 text-right space-x-2">
+                <td className="p-4 text-right whitespace-nowrap space-x-2">
                   <button onClick={() => { trackButtonClick('VanityURLs - Edit Record'); handleEdit(record); }} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" title="Edit">
                     <Edit className="w-4 h-4" />
                   </button>

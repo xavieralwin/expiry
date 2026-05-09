@@ -31,13 +31,21 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
     trackButtonClick(initialData ? 'RecordForm - Save Edit' : 'RecordForm - Save New');
     
     try {
-      // Check for unique URL
-      // If we are editing, we ignore the check if the URL didn't change
-      if (!initialData || initialData.url !== formData.url) {
+      // Check for unique URL within its respective list
+      // If we are editing, we ignore the check if the URL didn't change (or if type changed, we re-evaluate)
+      if (!initialData || initialData.url !== formData.url || initialData.pageType !== formData.pageType) {
         const existingRecords = await fetchRecords();
-        const exists = existingRecords.some(r => r.url === formData.url);
+        const exists = existingRecords.some(r => {
+           const isAkamaiExisting = r.pageType === 'Akamai 301 Redirect';
+           const isAkamaiNew = formData.pageType === 'Akamai 301 Redirect';
+           // If they don't belong to the same "list", they are not duplicates
+           if (isAkamaiExisting !== isAkamaiNew) return false;
+           // If it's the exact same record we're editing, it's not a duplicate
+           if (initialData && r.id === initialData.id) return false;
+           return r.url === formData.url;
+        });
         if (exists) {
-          setError('This URL already exists in the database. URLs must be unique.');
+          setError('This URL already exists in this list. URLs must be unique per list.');
           setSaving(false);
           return;
         }
@@ -71,29 +79,31 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
           {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">{error}</div>}
           
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Full & Complete URL (Must be unique)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{formData.pageType === 'Akamai 301 Redirect' ? 'Source URL (Must be unique)' : 'Full & Complete URL (Must be unique)'}</label>
             <input type="url" name="url" required value={formData.url} onChange={handleChange} placeholder="https://www.citibank.com.sg/..." className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
           </div>
 
-          {formData.pageType === 'Vanity URL' && (
+          {(formData.pageType === 'Vanity URL' || formData.pageType === 'Akamai 301 Redirect') && (
             <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Landing URL (For Vanity URLs)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Destination/Landing URL</label>
               <input type="text" name="landingUrl" value={formData.landingUrl} onChange={handleChange} placeholder="e.g. www.100gourmet.sg/" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all bg-white" />
-              <p className="text-xs text-slate-500 mt-1">The actual destination the vanity URL redirects to.</p>
+              <p className="text-xs text-slate-500 mt-1">The actual destination the URL redirects to.</p>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Content owner SOEID</label>
-              <input type="text" name="ownerSoeid" required value={formData.ownerSoeid} onChange={handleChange} placeholder="e.g. AB12345" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
-            </div>
+          {formData.pageType !== 'Akamai 301 Redirect' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Content owner SOEID</label>
+                <input type="text" name="ownerSoeid" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.ownerSoeid} onChange={handleChange} placeholder="e.g. AB12345" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Content Owner Email ID</label>
-              <input type="email" name="ownerEmail" required value={formData.ownerEmail} onChange={handleChange} placeholder="owner@citi.com" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Content Owner Email ID</label>
+                <input type="email" name="ownerEmail" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.ownerEmail} onChange={handleChange} placeholder="owner@citi.com" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
@@ -104,39 +114,46 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
                 <option value="EDM">EDM</option>
                 <option value="Landing page">Landing page</option>
                 <option value="Vanity URL">Vanity URL</option>
+                <option value="Akamai 301 Redirect">Akamai 301 Redirect</option>
                 <option value="Other">Other</option>
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Page Status</label>
-              <select name="status" value={formData.status} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
-                <option value="Live">Live</option>
-                <option value="Deleted">Deleted</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
+            {formData.pageType !== 'Akamai 301 Redirect' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Page Status</label>
+                  <select name="status" value={formData.status} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                    <option value="Live">Live</option>
+                    <option value="Deleted">Deleted</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Environment</label>
-              <select name="environment" value={formData.environment} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
-                <option value="ICMS">ICMS</option>
-                <option value="AEM">AEM</option>
-                <option value="Drupal">Drupal</option>
-              </select>
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Environment</label>
+                  <select name="environment" value={formData.environment} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                    <option value="ICMS">ICMS</option>
+                    <option value="AEM">AEM</option>
+                    <option value="Drupal">Drupal</option>
+                  </select>
+                </div>
 
-            <div className="lg:col-span-1">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date</label>
-              <input type="date" name="expiryDate" required value={formData.expiryDate} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
-            </div>
+                <div className="lg:col-span-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date</label>
+                  <input type="date" name="expiryDate" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.expiryDate} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+                </div>
+              </>
+            )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Content Owner</label>
-            <input type="text" name="ownerName" required value={formData.ownerName} onChange={handleChange} placeholder="Owner Name" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
-          </div>
+          {formData.pageType !== 'Akamai 301 Redirect' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Content Owner</label>
+              <input type="text" name="ownerName" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.ownerName} onChange={handleChange} placeholder="Owner Name" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+            </div>
+          )}
 
           <div className="pt-4 flex justify-end space-x-3 border-t border-slate-100">
             <button type="button" onClick={() => { trackButtonClick('RecordForm - Cancel'); onClose(); }} disabled={saving} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">Cancel</button>

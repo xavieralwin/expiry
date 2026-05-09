@@ -21,6 +21,7 @@ export default function ExpiringSoon() {
     fetchRecords()
       .then(fetched => {
         const filtered = fetched.filter(record => {
+          if (record.pageType === 'Akamai 301 Redirect') return false;
           if ((record.status !== 'Active' && record.status !== 'Live') || !record.expiryDate) return false;
           const daysToExpiry = differenceInDays(new Date(record.expiryDate), new Date());
           return daysToExpiry <= 30 && daysToExpiry >= -9999; // include already expired ones

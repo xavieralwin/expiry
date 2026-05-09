@@ -5,6 +5,7 @@ import OverviewDashboard from './pages/OverviewDashboard';
 import AllRecords from './pages/AllRecords';
 import ExpiringSoon from './pages/ExpiringSoon';
 import VanityURLs from './pages/VanityURLs';
+import AkamaiRedirects from './pages/AkamaiRedirects';
 import Login from './pages/Login';
 import { trackUserVisit } from './lib/analytics';
 
@@ -50,6 +51,7 @@ function App() {
         <Route path="records" element={<AllRecords />} />
         <Route path="expiring" element={<ExpiringSoon />} />
         <Route path="vanity" element={<VanityURLs />} />
+        <Route path="akamai" element={<AkamaiRedirects />} />
       </Route>
     </Routes>
   );
