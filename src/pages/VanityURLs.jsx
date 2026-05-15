@@ -85,48 +85,48 @@ export default function VanityURLs() {
   const totalPages = Math.ceil(filteredRecords.length / rowsPerPage);
 
   return (
-    <div className="p-8">
-      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-4 sm:p-6 md:p-8">
+      <header className="mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Vanity URLs</h2>
-          <p className="text-slate-500 mt-1">Manage and track all Vanity URLs</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Vanity URLs</h2>
+          <p className="text-sm md:text-base text-slate-500 mt-1">Manage and track all Vanity URLs</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-          <div className="relative">
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center w-full">
+          <div className="relative w-full md:w-auto">
             <input 
               type="text" 
               placeholder="Search records..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none w-64 text-sm"
+              className="pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none w-full md:w-64 text-sm"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           </div>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3 w-full md:w-auto">
           <button 
             onClick={() => { trackButtonClick('VanityURLs - Import Data'); setShowImportForm(true); }}
-            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Upload className="w-4 h-4" />
-            <span>Import Data</span>
+            <span>Import</span>
           </button>
           <button 
             onClick={() => { trackButtonClick('VanityURLs - Export CSV'); exportToCsv('vanity_records.csv', filteredRecords); }}
-            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Download className="w-4 h-4" />
             <span>CSV</span>
           </button>
           <button 
             onClick={() => { trackButtonClick('VanityURLs - Export XLSX'); exportToXlsx('vanity_records.xlsx', filteredRecords); }}
-            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Download className="w-4 h-4" />
             <span>XLSX</span>
           </button>
           <button 
             onClick={() => { trackButtonClick('VanityURLs - Add Record'); setEditingRecord(null); setShowForm(true); }}
-            className="bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            className="bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <span>+ Add Record</span>
           </button>

@@ -87,42 +87,44 @@ export default function ExpiringSoon() {
   };
 
   return (
-    <div className="p-8">
-      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center bg-pink-50 border border-pink-100 p-6 rounded-2xl shadow-sm gap-4">
+    <div className="p-4 sm:p-6 md:p-8">
+      <header className="mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-start md:items-center bg-pink-50 border border-pink-100 p-4 md:p-6 rounded-2xl shadow-sm gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-pink-900 flex items-center gap-2">
-            <AlertTriangle className="w-8 h-8 text-pink-500" /> Expiring Soon
+          <h2 className="text-2xl md:text-3xl font-bold text-pink-900 flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6 md:w-8 md:h-8 text-pink-500" /> Expiring Soon
           </h2>
-          <p className="text-pink-700/80 mt-1">URLs that are active and expiring within the next 30 days</p>
+          <p className="text-sm md:text-base text-pink-700/80 mt-1">URLs that are active and expiring within the next 30 days</p>
         </div>
-        <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
-          <div className="relative">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto">
+          <div className="relative w-full md:w-auto">
             <input 
               type="text" 
               placeholder="Search expiring..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none w-64 text-sm bg-white"
+              className="pl-10 pr-4 py-2 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none w-full md:w-64 text-sm bg-white"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           </div>
-          <button 
-            onClick={() => { trackButtonClick('ExpiringSoon - Send Alerts'); handleSendAlerts(); }}
-            disabled={sendingEmail}
-            className="bg-[#fbcfe8] border-none hover:bg-pink-300 text-pink-950 px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            <Mail className="w-4 h-4" />
-            <span>{sendingEmail ? 'Sending...' : 'Send Alerts'}</span>
-          </button>
-          <button 
-            onClick={() => { trackButtonClick('ExpiringSoon - Export CSV'); exportToCsv('expiring_records.csv', filteredDisplayRecords); }}
-            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export CSV</span>
-          </button>
-          <div className="bg-orange-500 text-white px-4 py-2 rounded-lg font-bold shadow shadow-orange-200">
-            {records.length} Action Needed
+          <div className="grid grid-cols-2 md:flex md:flex-row gap-2 md:gap-3 w-full md:w-auto">
+            <button 
+              onClick={() => { trackButtonClick('ExpiringSoon - Send Alerts'); handleSendAlerts(); }}
+              disabled={sendingEmail}
+              className="bg-[#fbcfe8] border-none hover:bg-pink-300 text-pink-950 px-3 md:px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-sm md:text-base col-span-1"
+            >
+              <Mail className="w-4 h-4" />
+              <span>{sendingEmail ? 'Sending...' : 'Alerts'}</span>
+            </button>
+            <button 
+              onClick={() => { trackButtonClick('ExpiringSoon - Export CSV'); exportToCsv('expiring_records.csv', filteredDisplayRecords); }}
+              className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-3 md:px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base col-span-1"
+            >
+              <Download className="w-4 h-4" />
+              <span>CSV</span>
+            </button>
+            <div className="bg-orange-500 text-white px-3 md:px-4 py-2 rounded-lg font-bold shadow shadow-orange-200 col-span-2 md:col-auto flex justify-center items-center text-sm md:text-base">
+              {records.length} Action Needed
+            </div>
           </div>
         </div>
       </header>
