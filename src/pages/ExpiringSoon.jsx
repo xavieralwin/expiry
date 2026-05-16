@@ -88,14 +88,14 @@ export default function ExpiringSoon() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <header className="mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-start md:items-center bg-pink-50 border border-pink-100 p-4 md:p-6 rounded-2xl shadow-sm gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-pink-900 flex items-center gap-2">
+      <header className="mb-6 md:mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center bg-pink-50 border border-pink-100 p-4 md:p-6 rounded-2xl shadow-sm gap-4">
+        <div className="flex-shrink-0 min-w-max">
+          <h2 className="text-2xl md:text-3xl font-bold text-pink-900 flex items-center gap-2 whitespace-nowrap">
             <AlertTriangle className="w-6 h-6 md:w-8 md:h-8 text-pink-500" /> Expiring Soon
           </h2>
-          <p className="text-sm md:text-base text-pink-700/80 mt-1">URLs that are active and expiring within the next 30 days</p>
+          <p className="text-sm md:text-base text-pink-700/80 mt-1 whitespace-nowrap">URLs that are active and expiring within the next 30 days</p>
         </div>
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center flex-wrap gap-4 w-full xl:justify-end xl:w-auto">
           <div className="relative w-full md:w-auto">
             <input 
               type="text" 

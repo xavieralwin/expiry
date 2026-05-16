@@ -42,6 +42,11 @@ export async function initDb() {
     await db.exec("ALTER TABLE urls ADD COLUMN landingUrl TEXT");
   }
 
+  const hasJiraNo = tableInfo.some(col => col.name === 'jiraNo');
+  if (!hasJiraNo) {
+    await db.exec("ALTER TABLE urls ADD COLUMN jiraNo TEXT");
+  }
+
   console.log('Database initialized');
   return db;
 }

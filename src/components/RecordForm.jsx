@@ -12,7 +12,8 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
     expiryDate: '',
     ownerName: '',
     environment: 'ICMS',
-    landingUrl: ''
+    landingUrl: '',
+    jiraNo: ''
   };
 
   const [formData, setFormData] = useState(initialData ? { ...defaultFormState, ...initialData } : defaultFormState);
@@ -79,19 +80,19 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
           {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">{error}</div>}
           
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{formData.pageType === 'Akamai 301 Redirect' ? 'Source URL (Must be unique)' : 'Full & Complete URL (Must be unique)'}</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{formData.pageType === 'Akamai 301 Redirect' || formData.pageType === 'Rewrite Rule' ? 'Live URL (Must be unique)' : 'Full & Complete URL (Must be unique)'}</label>
             <input type="url" name="url" required value={formData.url} onChange={handleChange} placeholder="https://www.citibank.com.sg/..." className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
           </div>
 
-          {(formData.pageType === 'Vanity URL' || formData.pageType === 'Akamai 301 Redirect') && (
+          {(formData.pageType === 'Vanity URL' || formData.pageType === 'Akamai 301 Redirect' || formData.pageType === 'Rewrite Rule') && (
             <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Destination/Landing URL</label>
-              <input type="text" name="landingUrl" value={formData.landingUrl} onChange={handleChange} placeholder="e.g. www.100gourmet.sg/" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all bg-white" />
+              <label className="block text-sm font-medium text-slate-700 mb-1">{formData.pageType === 'Rewrite Rule' ? 'Origin URL' : 'Destination/Landing URL'}</label>
+              <input type="text" name="landingUrl" value={formData.landingUrl} onChange={handleChange} placeholder={formData.pageType === 'Rewrite Rule' ? "https://..." : "e.g. www.100gourmet.sg/"} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all bg-white" />
               <p className="text-xs text-slate-500 mt-1">The actual destination the URL redirects to.</p>
             </div>
           )}
 
-          {formData.pageType !== 'Akamai 301 Redirect' && (
+          {formData.pageType !== 'Akamai 301 Redirect' && formData.pageType !== 'Rewrite Rule' && (
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Content owner SOEID</label>
@@ -105,53 +106,62 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
             </div>
           )}
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Page Type</label>
-              <select name="pageType" value={formData.pageType} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
-                <option value="HTML">HTML</option>
-                <option value="PDF">PDF</option>
-                <option value="EDM">EDM</option>
-                <option value="Landing page">Landing page</option>
-                <option value="Vanity URL">Vanity URL</option>
-                <option value="Akamai 301 Redirect">Akamai 301 Redirect</option>
-                <option value="Other">Other</option>
-              </select>
+          {formData.pageType !== 'Rewrite Rule' && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Page Type</label>
+                <select name="pageType" value={formData.pageType} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                  <option value="HTML">HTML</option>
+                  <option value="PDF">PDF</option>
+                  <option value="EDM">EDM</option>
+                  <option value="Landing page">Landing page</option>
+                  <option value="Vanity URL">Vanity URL</option>
+                  <option value="Akamai 301 Redirect">Akamai 301 Redirect</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              {formData.pageType !== 'Akamai 301 Redirect' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Page Status</label>
+                    <select name="status" value={formData.status} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                      <option value="Live">Live</option>
+                      <option value="Deleted">Deleted</option>
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Environment</label>
+                    <select name="environment" value={formData.environment} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
+                      <option value="ICMS">ICMS</option>
+                      <option value="AEM">AEM</option>
+                      <option value="Drupal">Drupal</option>
+                    </select>
+                  </div>
+
+                  <div className="lg:col-span-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date</label>
+                    <input type="date" name="expiryDate" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.expiryDate} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+                  </div>
+                </>
+              )}
             </div>
+          )}
 
-            {formData.pageType !== 'Akamai 301 Redirect' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Page Status</label>
-                  <select name="status" value={formData.status} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
-                    <option value="Live">Live</option>
-                    <option value="Deleted">Deleted</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Environment</label>
-                  <select name="environment" value={formData.environment} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all">
-                    <option value="ICMS">ICMS</option>
-                    <option value="AEM">AEM</option>
-                    <option value="Drupal">Drupal</option>
-                  </select>
-                </div>
-
-                <div className="lg:col-span-1">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date</label>
-                  <input type="date" name="expiryDate" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.expiryDate} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
-                </div>
-              </>
-            )}
-          </div>
-
-          {formData.pageType !== 'Akamai 301 Redirect' && (
+          {formData.pageType !== 'Akamai 301 Redirect' && formData.pageType !== 'Rewrite Rule' && (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Content Owner</label>
               <input type="text" name="ownerName" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.ownerName} onChange={handleChange} placeholder="Owner Name" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+            </div>
+          )}
+
+          {formData.pageType === 'Rewrite Rule' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">JIRA No</label>
+              <input type="text" name="jiraNo" value={formData.jiraNo || ''} onChange={handleChange} placeholder="e.g. EX-1234" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
             </div>
           )}
 

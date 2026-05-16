@@ -68,7 +68,8 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
       setProgress(prev => ({ ...prev, current: 'Fetching existing data...' }));
       const existingSnapshot = await fetchRecords();
       const existingAkamaiUrls = new Set(existingSnapshot.filter(d => d.pageType === 'Akamai 301 Redirect').map(d => d.url));
-      const existingOtherUrls = new Set(existingSnapshot.filter(d => d.pageType !== 'Akamai 301 Redirect').map(d => d.url));
+      const existingRewriteUrls = new Set(existingSnapshot.filter(d => d.pageType === 'Rewrite Rule').map(d => d.url));
+      const existingOtherUrls = new Set(existingSnapshot.filter(d => d.pageType !== 'Akamai 301 Redirect' && d.pageType !== 'Rewrite Rule').map(d => d.url));
       
       let successes = 0;
       let failures = 0;
@@ -86,14 +87,18 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           if (!urlKey || !row[urlKey]) {
             throw new Error(`Missing URL column in row. Available headers: ${keys.slice(0, 3).join(', ')}...`);
           }
-          const urlVal = String(row[urlKey]).trim();
+          let urlVal = String(row[urlKey]).trim();
+          
+          if (defaultPageType === 'Rewrite Rule' && !urlVal.startsWith('http')) {
+            urlVal = `https://www.citibank.com.sg${urlVal.startsWith('/') ? '' : '/'}${urlVal}`;
+          }
 
           const soeidKey = keys.find(k => k.toLowerCase().includes('soeid'));
           const emailKey = keys.find(k => k.toLowerCase().includes('email'));
           const typeKey = keys.find(k => k.toLowerCase().includes('type'));
           const statusKey = keys.find(k => k.toLowerCase().includes('status'));
           const envKey = keys.find(k => k.toLowerCase().includes('env'));
-          const landingKey = keys.find(k => k.toLowerCase().includes('landing'));
+          const landingKey = keys.find(k => k.toLowerCase().includes('landing') || k.toLowerCase().includes('destination') || k.toLowerCase().includes('origin'));
           // Strict expiry finding to avoid "Created Date"
           const expiryKey = keys.find(k => k.toLowerCase().includes('expiry') && k.toLowerCase().includes('date'));
           const ownerKey = keys.find(k => k.toLowerCase().includes('owner') && !k.toLowerCase().includes('soeid') && !k.toLowerCase().includes('email'));
@@ -113,7 +118,11 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           };
 
           const isAkamai = mappedRecord.pageType === 'Akamai 301 Redirect';
-          const targetSet = isAkamai ? existingAkamaiUrls : existingOtherUrls;
+          const isRewrite = mappedRecord.pageType === 'Rewrite Rule';
+          
+          let targetSet = existingOtherUrls;
+          if (isAkamai) targetSet = existingAkamaiUrls;
+          else if (isRewrite) targetSet = existingRewriteUrls;
 
           if (targetSet.has(urlVal)) {
             throw new Error(`Duplicate URL exists in this list: ${urlVal.substring(0,30)}...`);

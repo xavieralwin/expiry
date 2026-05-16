@@ -85,12 +85,12 @@ export default function AllRecords() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <header className="mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900">All Records</h2>
-          <p className="text-sm md:text-base text-slate-500 mt-1">Manage and track all URL expiry dates</p>
+      <header className="mb-6 md:mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+        <div className="flex-shrink-0 min-w-max">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 whitespace-nowrap">All Records</h2>
+          <p className="text-sm md:text-base text-slate-500 mt-1 whitespace-nowrap">Manage and track all URL expiry dates</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center w-full">
+        <div className="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center w-full xl:justify-end">
           <div className="relative w-full md:w-auto">
             <input 
               type="text" 

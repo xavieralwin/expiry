@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
-import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X } from 'lucide-react';
+import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { trackButtonClick } from '../lib/analytics';
 
@@ -101,6 +101,15 @@ export default function Layout() {
           >
             <Network className="w-5 h-5" />
             <span>Akamai</span>
+          </NavLink>
+
+          <NavLink 
+            to="/rewrite-rules" 
+            onClick={() => { trackButtonClick('Sidebar - Rewrite Rules'); closeMobileMenu(); }}
+            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-[#fda4af] text-rose-950 font-bold shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}
+          >
+            <Link className="w-5 h-5" />
+            <span>Rewrite Rules</span>
           </NavLink>
           
           <NavLink 

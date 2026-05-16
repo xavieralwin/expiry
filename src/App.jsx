@@ -6,6 +6,7 @@ import AllRecords from './pages/AllRecords';
 import ExpiringSoon from './pages/ExpiringSoon';
 import VanityURLs from './pages/VanityURLs';
 import AkamaiRedirects from './pages/AkamaiRedirects';
+import RewriteRules from './pages/RewriteRules';
 import Login from './pages/Login';
 import { trackUserVisit } from './lib/analytics';
 
@@ -52,6 +53,7 @@ function App() {
         <Route path="expiring" element={<ExpiringSoon />} />
         <Route path="vanity" element={<VanityURLs />} />
         <Route path="akamai" element={<AkamaiRedirects />} />
+        <Route path="rewrite-rules" element={<RewriteRules />} />
       </Route>
     </Routes>
   );

@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { fetchRecords, deleteRecord } from '../lib/api';
-import { format } from 'date-fns';
-import { Trash2, Edit, ExternalLink, Download, Upload, Search, Network } from 'lucide-react';
+import { Trash2, Edit, ExternalLink, Download, Upload, Search, Link } from 'lucide-react';
 import { exportToCsv, exportToXlsx } from '../lib/exportCsv';
 import RecordForm from '../components/RecordForm';
 import ImportForm from '../components/ImportForm';
 import { trackButtonClick } from '../lib/analytics';
 
-export default function AkamaiRedirects() {
+export default function RewriteRules() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -55,19 +54,14 @@ export default function AkamaiRedirects() {
   };
 
   let filteredRecords = records.filter(record => {
-    // Only show Akamai 301 Redirects
-    if (record.pageType !== 'Akamai 301 Redirect') return false;
+    // Only show Rewrite Rules
+    if (record.pageType !== 'Rewrite Rule') return false;
     
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
       (record.url || '').toLowerCase().includes(term) ||
       (record.landingUrl || '').toLowerCase().includes(term) ||
-      (record.ownerName || '').toLowerCase().includes(term) ||
-      (record.ownerSoeid || '').toLowerCase().includes(term) ||
-      (record.ownerEmail || '').toLowerCase().includes(term) ||
-      (record.pageType || '').toLowerCase().includes(term) ||
-      (record.environment || '').toLowerCase().includes(term) ||
       (record.status || '').toLowerCase().includes(term)
     );
   });
@@ -88,8 +82,8 @@ export default function AkamaiRedirects() {
     <div className="p-4 sm:p-6 md:p-8">
       <header className="mb-6 md:mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div className="flex-shrink-0 min-w-max">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 whitespace-nowrap">Akamai 301 Redirects</h2>
-          <p className="text-sm md:text-base text-slate-500 mt-1 whitespace-nowrap">Manage and track all Akamai 301 Redirects</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 whitespace-nowrap">Rewrite Rules</h2>
+          <p className="text-sm md:text-base text-slate-500 mt-1 whitespace-nowrap">Manage and track Rewrite Rules</p>
         </div>
         <div className="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center w-full xl:justify-end">
           <div className="relative w-full md:w-auto">
@@ -104,28 +98,28 @@ export default function AkamaiRedirects() {
           </div>
           <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3 w-full md:w-auto">
           <button 
-            onClick={() => { trackButtonClick('AkamaiRedirects - Import Data'); setShowImportForm(true); }}
+            onClick={() => { trackButtonClick('RewriteRules - Import Data'); setShowImportForm(true); }}
             className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Upload className="w-4 h-4" />
             <span>Import</span>
           </button>
           <button 
-            onClick={() => { trackButtonClick('AkamaiRedirects - Export CSV'); exportToCsv('akamai_records.csv', filteredRecords); }}
+            onClick={() => { trackButtonClick('RewriteRules - Export CSV'); exportToCsv('rewrite_rules.csv', filteredRecords); }}
             className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Download className="w-4 h-4" />
             <span>CSV</span>
           </button>
           <button 
-            onClick={() => { trackButtonClick('AkamaiRedirects - Export XLSX'); exportToXlsx('akamai_records.xlsx', filteredRecords); }}
+            onClick={() => { trackButtonClick('RewriteRules - Export XLSX'); exportToXlsx('rewrite_rules.xlsx', filteredRecords); }}
             className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Download className="w-4 h-4" />
             <span>XLSX</span>
           </button>
           <button 
-            onClick={() => { trackButtonClick('AkamaiRedirects - Add Record'); setEditingRecord(null); setShowForm(true); }}
+            onClick={() => { trackButtonClick('RewriteRules - Add Record'); setEditingRecord(null); setShowForm(true); }}
             className="bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <span>+ Add Record</span>
@@ -138,27 +132,28 @@ export default function AkamaiRedirects() {
         <table className="w-full text-left min-w-[1000px]">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-sm">
-              <th className="p-4 font-medium w-[30%] xl:w-[35%]">Source URL</th>
-              <th className="p-4 font-medium w-full">Destination URL</th>
+              <th className="p-4 font-medium w-[40%]">Live URL</th>
+              <th className="p-4 font-medium w-[35%]">Origin URL</th>
+              <th className="p-4 font-medium w-[15%]">JIRA No</th>
               <th className="p-4 font-medium text-right whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {loading ? (
-              <tr><td colSpan="3" className="p-8 text-center text-slate-400">Loading records...</td></tr>
+              <tr><td colSpan="4" className="p-8 text-center text-slate-400">Loading records...</td></tr>
             ) : paginatedRecords.length === 0 ? (
-              <tr><td colSpan="3" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
+              <tr><td colSpan="4" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
             ) : paginatedRecords.map(record => (
               <tr key={record.id} className="hover:bg-slate-50 transition-colors">
                 <td className="p-4">
-                  <div className="w-full max-w-[300px] md:max-w-[400px] lg:max-w-[600px] xl:max-w-[800px]">
-                    <a href={record.url} target="_blank" rel="noreferrer" className="text-purple-600 hover:text-purple-800 hover:underline flex items-center gap-1 truncate" title={record.url}>
+                  <div className="w-full max-w-[400px] lg:max-w-[500px]">
+                    <a href={record.url.startsWith('http') ? record.url : `https://${record.url}`} target="_blank" rel="noreferrer" className="text-purple-600 hover:text-purple-800 hover:underline flex items-center gap-1 truncate" title={record.url}>
                       <span className="font-semibold truncate">{record.url}</span> <ExternalLink className="w-3 h-3 flex-shrink-0" />
                     </a>
                   </div>
                 </td>
                 <td className="p-4">
-                  <div className="w-full max-w-[300px] md:max-w-[400px] lg:max-w-[600px] xl:max-w-[800px]">
+                  <div className="w-full max-w-[300px] lg:max-w-[400px]">
                     {record.landingUrl ? (
                       <a href={record.landingUrl.startsWith('http') ? record.landingUrl : `https://${record.landingUrl}`} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-slate-800 hover:underline text-xs truncate flex items-center gap-1" title={record.landingUrl}>
                         <span className="truncate">{record.landingUrl}</span> <ExternalLink className="w-3 h-3 flex-shrink-0" />
@@ -168,11 +163,14 @@ export default function AkamaiRedirects() {
                     )}
                   </div>
                 </td>
+                <td className="p-4">
+                  <span className="text-slate-600 text-sm font-medium">{record.jiraNo || '-'}</span>
+                </td>
                 <td className="p-4 text-right whitespace-nowrap space-x-2">
-                  <button onClick={() => { trackButtonClick('AkamaiRedirects - Edit Record'); handleEdit(record); }} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" title="Edit">
+                  <button onClick={() => { trackButtonClick('RewriteRules - Edit Record'); handleEdit(record); }} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" title="Edit">
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button onClick={() => { trackButtonClick('AkamaiRedirects - Delete Record'); handleDelete(record.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Delete">
+                  <button onClick={() => { trackButtonClick('RewriteRules - Delete Record'); handleDelete(record.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Delete">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
@@ -218,7 +216,7 @@ export default function AkamaiRedirects() {
           initialData={editingRecord}
           onClose={() => setShowForm(false)} 
           onSave={() => loadRecords()} 
-          defaultPageType="Akamai 301 Redirect"
+          defaultPageType="Rewrite Rule"
         />
       )}
 
@@ -226,7 +224,7 @@ export default function AkamaiRedirects() {
         <ImportForm 
           onClose={() => setShowImportForm(false)} 
           onSave={() => { loadRecords(); setShowImportForm(false); }} 
-          defaultPageType="Akamai 301 Redirect"
+          defaultPageType="Rewrite Rule"
         />
       )}
     </div>
