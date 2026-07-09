@@ -27,7 +27,7 @@ initDb().then(database => {
 // GET /api/urls
 app.get('/api/urls', async (req, res) => {
   try {
-    const urls = await db.all('SELECT * FROM urls ORDER BY createdAt DESC');
+    const urls = await db.all('SELECT * FROM urls ORDER BY updatedAt DESC');
     res.json(urls);
   } catch (error) {
     console.error(error);
