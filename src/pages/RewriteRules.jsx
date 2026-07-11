@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchRecords, deleteRecord } from '../lib/api';
 import { Trash2, Edit, ExternalLink, Download, Upload, Search, Link } from 'lucide-react';
-import { exportToCsv, exportToXlsx } from '../lib/exportCsv';
+import { exportToCsv, exportToXlsx, getReleaseMonth } from '../lib/exportCsv';
 import RecordForm from '../components/RecordForm';
 import ImportForm from '../components/ImportForm';
 import { trackButtonClick } from '../lib/analytics';
@@ -62,7 +62,9 @@ export default function RewriteRules() {
     return (
       (record.url || '').toLowerCase().includes(term) ||
       (record.landingUrl || '').toLowerCase().includes(term) ||
-      (record.status || '').toLowerCase().includes(term)
+      (record.status || '').toLowerCase().includes(term) ||
+      (record.chgNo || '').toLowerCase().includes(term) ||
+      getReleaseMonth(record.releaseDate).toLowerCase().includes(term)
     );
   });
 
@@ -132,28 +134,29 @@ export default function RewriteRules() {
         <table className="w-full text-left min-w-[1000px]">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-sm">
-              <th className="p-4 font-medium w-[40%]">Live URL</th>
-              <th className="p-4 font-medium w-[35%]">Origin URL</th>
-              <th className="p-4 font-medium w-[15%]">JIRA No</th>
+              <th className="p-4 font-medium">Live URL</th>
+              <th className="p-4 font-medium">Origin URL</th>
+              <th className="p-4 font-medium">CHG</th>
+              <th className="p-4 font-medium">Release Month</th>
               <th className="p-4 font-medium text-right whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {loading ? (
-              <tr><td colSpan="4" className="p-8 text-center text-slate-400">Loading records...</td></tr>
+              <tr><td colSpan="5" className="p-8 text-center text-slate-400">Loading records...</td></tr>
             ) : paginatedRecords.length === 0 ? (
-              <tr><td colSpan="4" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
+              <tr><td colSpan="5" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
             ) : paginatedRecords.map(record => (
               <tr key={record.id} className="hover:bg-slate-50 transition-colors">
                 <td className="p-4">
-                  <div className="w-full max-w-[400px] lg:max-w-[500px]">
+                  <div className="w-64 lg:w-96">
                     <a href={record.url.startsWith('http') ? record.url : `https://${record.url}`} target="_blank" rel="noreferrer" className="text-purple-600 hover:text-purple-800 hover:underline flex items-center gap-1 truncate" title={record.url}>
                       <span className="font-semibold truncate">{record.url}</span> <ExternalLink className="w-3 h-3 flex-shrink-0" />
                     </a>
                   </div>
                 </td>
                 <td className="p-4">
-                  <div className="w-full max-w-[300px] lg:max-w-[400px]">
+                  <div className="w-64 lg:w-96">
                     {record.landingUrl ? (
                       <a href={record.landingUrl.startsWith('http') ? record.landingUrl : `https://${record.landingUrl}`} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-slate-800 hover:underline text-xs truncate flex items-center gap-1" title={record.landingUrl}>
                         <span className="truncate">{record.landingUrl}</span> <ExternalLink className="w-3 h-3 flex-shrink-0" />
@@ -164,7 +167,10 @@ export default function RewriteRules() {
                   </div>
                 </td>
                 <td className="p-4">
-                  <span className="text-slate-600 text-sm font-medium">{record.jiraNo || '-'}</span>
+                  <span className="text-slate-600 text-sm font-medium">{record.chgNo || '-'}</span>
+                </td>
+                <td className="p-4">
+                  <span className="text-slate-600 text-sm font-medium">{getReleaseMonth(record.releaseDate)}</span>
                 </td>
                 <td className="p-4 text-right whitespace-nowrap space-x-2">
                   <button onClick={() => { trackButtonClick('RewriteRules - Edit Record'); handleEdit(record); }} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" title="Edit">

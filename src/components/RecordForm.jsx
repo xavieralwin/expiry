@@ -13,10 +13,17 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
     ownerName: '',
     environment: 'ICMS',
     landingUrl: '',
-    jiraNo: ''
+    jiraNo: '',
+    chgNo: '',
+    releaseDate: ''
   };
 
-  const [formData, setFormData] = useState(initialData ? { ...defaultFormState, ...initialData } : defaultFormState);
+  const [formData, setFormData] = useState(() => {
+    const init = initialData ? { ...defaultFormState, ...initialData } : defaultFormState;
+    if (init.expiryDate) init.expiryDate = init.expiryDate.substring(0, 10);
+    if (init.releaseDate) init.releaseDate = init.releaseDate.substring(0, 10);
+    return init;
+  });
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -158,10 +165,16 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
             </div>
           )}
 
-          {formData.pageType === 'Rewrite Rule' && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">JIRA No</label>
-              <input type="text" name="jiraNo" value={formData.jiraNo || ''} onChange={handleChange} placeholder="e.g. EX-1234" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+          {(formData.pageType === 'Akamai 301 Redirect' || formData.pageType === 'Rewrite Rule') && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">CHG</label>
+                <input type="text" name="chgNo" value={formData.chgNo || ''} onChange={handleChange} placeholder="e.g. CHG0123456" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Release Date</label>
+                <input type="date" name="releaseDate" value={formData.releaseDate || ''} onChange={handleChange} className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+              </div>
             </div>
           )}
 

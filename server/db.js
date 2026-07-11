@@ -7,10 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export async function getDb() {
-  return open({
+  const db = await open({
     filename: path.join(__dirname, 'database.sqlite'),
     driver: sqlite3.Database
   });
+  await db.run("PRAGMA busy_timeout = 5000");
+  await db.run("PRAGMA journal_mode = WAL");
+  return db;
 }
 
 export async function initDb() {
@@ -36,7 +39,7 @@ export async function initDb() {
   if (!hasEnvironment) {
     await db.exec("ALTER TABLE urls ADD COLUMN environment TEXT DEFAULT 'ICMS'");
   }
-  
+
   const hasLandingUrl = tableInfo.some(col => col.name === 'landingUrl');
   if (!hasLandingUrl) {
     await db.exec("ALTER TABLE urls ADD COLUMN landingUrl TEXT");
@@ -45,6 +48,16 @@ export async function initDb() {
   const hasJiraNo = tableInfo.some(col => col.name === 'jiraNo');
   if (!hasJiraNo) {
     await db.exec("ALTER TABLE urls ADD COLUMN jiraNo TEXT");
+  }
+
+  const hasChgNo = tableInfo.some(col => col.name === 'chgNo');
+  if (!hasChgNo) {
+    await db.exec("ALTER TABLE urls ADD COLUMN chgNo TEXT");
+  }
+
+  const hasReleaseDate = tableInfo.some(col => col.name === 'releaseDate');
+  if (!hasReleaseDate) {
+    await db.exec("ALTER TABLE urls ADD COLUMN releaseDate TEXT");
   }
 
   console.log('Database initialized');

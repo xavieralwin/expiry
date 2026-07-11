@@ -103,6 +103,11 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           const expiryKey = keys.find(k => k.toLowerCase().includes('expiry') && k.toLowerCase().includes('date'));
           const ownerKey = keys.find(k => k.toLowerCase().includes('owner') && !k.toLowerCase().includes('soeid') && !k.toLowerCase().includes('email'));
 
+          // Look for CHG or JIRA headers
+          const chgKey = keys.find(k => k.toLowerCase().includes('chg') || k.toLowerCase().includes('change') || k.toLowerCase().includes('jira'));
+          // Look for Release Date headers (excluding created/updated/expiry)
+          const releaseDateKey = keys.find(k => (k.toLowerCase().includes('release') || k.toLowerCase().includes('date')) && !k.toLowerCase().includes('created') && !k.toLowerCase().includes('updated') && !k.toLowerCase().includes('expiry'));
+
           // Basic map
           const mappedRecord = {
             url: urlVal,
@@ -114,6 +119,8 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
             ownerName: ownerKey ? String(row[ownerKey]) : '',
             environment: envKey ? String(row[envKey]) : 'ICMS',
             expiryDate: expiryKey ? parseExcelDate(row[expiryKey]) : '',
+            chgNo: chgKey ? String(row[chgKey]) : '',
+            releaseDate: releaseDateKey ? parseExcelDate(row[releaseDateKey]) : '',
             createdAt: new Date().toISOString()
           };
 
