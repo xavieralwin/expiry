@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchRecords, batchImportCustomAPI } from '../lib/api';
 import { trackButtonClick } from '../lib/analytics';
+import { IS_DB_MIGRATION_ACTIVE } from '../lib/maintenance';
 
 export default function ImportForm({ onClose, onSave, defaultPageType }) {
   const [file, setFile] = useState(null);
@@ -42,6 +43,10 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
   }
 
   const handleImport = async () => {
+    if (IS_DB_MIGRATION_ACTIVE) {
+      setError('Database migration in progress. Importing data is disabled.');
+      return;
+    }
     if (!file) {
       setError('Please select a file first.');
       return;
@@ -184,9 +189,15 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
         </div>
         
         <div className="p-8 space-y-6">
+          {IS_DB_MIGRATION_ACTIVE && (
+            <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm border border-amber-200 flex items-start gap-2">
+              <span className="font-bold">⚠️ Notice:</span>
+              <span>Database migration is currently in progress. Bulk importing is disabled.</span>
+            </div>
+          )}
           {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm border border-red-200">{error}</div>}
           
-          <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => !importing && fileInputRef.current?.click()}>
+          <div className={`border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 transition-colors ${IS_DB_MIGRATION_ACTIVE ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100 cursor-pointer'}`} onClick={() => !importing && !IS_DB_MIGRATION_ACTIVE && fileInputRef.current?.click()}>
             <input 
               type="file" 
               accept=".csv, .xlsx, .xls" 
@@ -236,7 +247,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
             <button 
               type="button" 
               onClick={() => { trackButtonClick('ImportForm - Start Import'); handleImport(); }}
-              disabled={!file || importing} 
+              disabled={!file || importing || IS_DB_MIGRATION_ACTIVE} 
               className="px-6 py-2.5 bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 rounded-xl font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               {importing ? 'Importing...' : 'Start Import'}

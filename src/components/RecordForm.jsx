@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { addRecord, updateRecord, fetchRecords } from '../lib/api';
 import { trackButtonClick } from '../lib/analytics';
+import { IS_DB_MIGRATION_ACTIVE } from '../lib/maintenance';
 
 export default function RecordForm({ initialData, onClose, onSave, defaultPageType }) {
   const defaultFormState = {
@@ -34,6 +35,10 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (IS_DB_MIGRATION_ACTIVE) {
+      setError('Database migration is currently in progress. Saving data is disabled.');
+      return;
+    }
     setSaving(true);
     setError('');
     trackButtonClick(initialData ? 'RecordForm - Save Edit' : 'RecordForm - Save New');
@@ -84,6 +89,12 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {IS_DB_MIGRATION_ACTIVE && (
+            <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm border border-amber-200 flex items-start gap-2">
+              <span className="font-bold">⚠️ Notice:</span>
+              <span>Database migration is currently in progress. Data updates are disabled.</span>
+            </div>
+          )}
           {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">{error}</div>}
           
           <div>
@@ -180,7 +191,7 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
 
           <div className="pt-4 flex justify-end space-x-3 border-t border-slate-100">
             <button type="button" onClick={() => { trackButtonClick('RecordForm - Cancel'); onClose(); }} disabled={saving} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">Cancel</button>
-            <button type="submit" disabled={saving} className="px-6 py-2 bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 rounded-lg font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer">
+            <button type="submit" disabled={saving || IS_DB_MIGRATION_ACTIVE} className="px-6 py-2 bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 rounded-lg font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer">
               {saving ? 'Saving...' : 'Save Record'}
             </button>
           </div>

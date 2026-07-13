@@ -5,6 +5,7 @@ import { exportToCsv, exportToXlsx, getReleaseMonth } from '../lib/exportCsv';
 import RecordForm from '../components/RecordForm';
 import ImportForm from '../components/ImportForm';
 import { trackButtonClick } from '../lib/analytics';
+import { IS_DB_MIGRATION_ACTIVE } from '../lib/maintenance';
 
 export default function RewriteRules() {
   const [records, setRecords] = useState([]);
@@ -38,6 +39,10 @@ export default function RewriteRules() {
   }, []);
 
   const handleDelete = async (id) => {
+    if (IS_DB_MIGRATION_ACTIVE) {
+      alert('Database migration is currently in progress. Deletion of records is disabled.');
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this record?')) {
       try {
         await deleteRecord(id);
@@ -100,8 +105,16 @@ export default function RewriteRules() {
           </div>
           <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3 w-full md:w-auto">
           <button 
-            onClick={() => { trackButtonClick('RewriteRules - Import Data'); setShowImportForm(true); }}
-            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
+            onClick={() => { 
+              if (IS_DB_MIGRATION_ACTIVE) {
+                alert('Database migration in progress. Importing data is disabled.');
+                return;
+              }
+              trackButtonClick('RewriteRules - Import Data'); 
+              setShowImportForm(true); 
+            }}
+            disabled={IS_DB_MIGRATION_ACTIVE}
+            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload className="w-4 h-4" />
             <span>Import</span>
@@ -121,8 +134,17 @@ export default function RewriteRules() {
             <span>XLSX</span>
           </button>
           <button 
-            onClick={() => { trackButtonClick('RewriteRules - Add Record'); setEditingRecord(null); setShowForm(true); }}
-            className="bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
+            onClick={() => { 
+              if (IS_DB_MIGRATION_ACTIVE) {
+                alert('Database migration in progress. Adding records is disabled.');
+                return;
+              }
+              trackButtonClick('RewriteRules - Add Record'); 
+              setEditingRecord(null); 
+              setShowForm(true); 
+            }}
+            disabled={IS_DB_MIGRATION_ACTIVE}
+            className="bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>+ Add Record</span>
           </button>
@@ -173,10 +195,34 @@ export default function RewriteRules() {
                   <span className="text-slate-600 text-sm font-medium">{getReleaseMonth(record.releaseDate)}</span>
                 </td>
                 <td className="p-4 text-right whitespace-nowrap space-x-2">
-                  <button onClick={() => { trackButtonClick('RewriteRules - Edit Record'); handleEdit(record); }} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" title="Edit">
+                  <button 
+                    onClick={() => {
+                      if (IS_DB_MIGRATION_ACTIVE) {
+                        alert('Database migration in progress. Editing records is disabled.');
+                        return;
+                      }
+                      trackButtonClick('RewriteRules - Edit Record');
+                      handleEdit(record);
+                    }}
+                    disabled={IS_DB_MIGRATION_ACTIVE}
+                    className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Edit"
+                  >
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button onClick={() => { trackButtonClick('RewriteRules - Delete Record'); handleDelete(record.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Delete">
+                  <button 
+                    onClick={() => {
+                      if (IS_DB_MIGRATION_ACTIVE) {
+                        alert('Database migration in progress. Deleting records is disabled.');
+                        return;
+                      }
+                      trackButtonClick('RewriteRules - Delete Record');
+                      handleDelete(record.id);
+                    }}
+                    disabled={IS_DB_MIGRATION_ACTIVE}
+                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>

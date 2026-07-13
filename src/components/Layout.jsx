@@ -4,6 +4,8 @@ import { NavLink } from 'react-router-dom';
 import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { trackButtonClick } from '../lib/analytics';
+import { IS_DB_MIGRATION_ACTIVE } from '../lib/maintenance';
+import MaintenanceModal from './MaintenanceModal';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -135,7 +137,19 @@ export default function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 min-w-0 overflow-auto pt-16 md:pt-0 relative z-0">
+        {IS_DB_MIGRATION_ACTIVE && (
+          <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-4 py-3 flex items-center justify-center gap-2 border-b border-orange-400/20 shadow-sm sticky top-0 z-30 backdrop-blur-sm">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-100 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
+            <span className="font-semibold text-xs md:text-sm tracking-wide text-center">
+              DATABASE MIGRATION IN PROGRESS: READ-ONLY MODE ACTIVE. PLEASE DO NOT UPDATE OR DATA LOSS MAY OCCUR.
+            </span>
+          </div>
+        )}
         <Outlet />
+        {IS_DB_MIGRATION_ACTIVE && <MaintenanceModal />}
       </main>
     </div>
   );
