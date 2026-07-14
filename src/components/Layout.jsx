@@ -4,12 +4,21 @@ import { NavLink } from 'react-router-dom';
 import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { trackButtonClick } from '../lib/analytics';
-import { IS_DB_MIGRATION_ACTIVE } from '../lib/maintenance';
+import { IS_DB_MIGRATION_ACTIVE, IS_DB_MIGRATION_COMPLETE } from '../lib/maintenance';
 import MaintenanceModal from './MaintenanceModal';
 
 export default function Layout() {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMigrationCompleteDismissed, setIsMigrationCompleteDismissed] = useState(
+    () => sessionStorage.getItem('migration_complete_dismissed') === 'true'
+  );
+
+  const handleDismissMigrationComplete = () => {
+    trackButtonClick('Migration Complete Notice - Dismissed');
+    sessionStorage.setItem('migration_complete_dismissed', 'true');
+    setIsMigrationCompleteDismissed(true);
+  };
   
   const handleLogout = () => {
     trackButtonClick('Layout - Sign Out');
@@ -146,6 +155,26 @@ export default function Layout() {
             <span className="font-semibold text-xs md:text-sm tracking-wide text-center">
               DATABASE MIGRATION IN PROGRESS: READ-ONLY MODE ACTIVE. PLEASE DO NOT UPDATE OR DATA LOSS MAY OCCUR.
             </span>
+          </div>
+        )}
+        {IS_DB_MIGRATION_COMPLETE && !IS_DB_MIGRATION_ACTIVE && !isMigrationCompleteDismissed && (
+          <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 text-white px-4 py-3 flex items-center justify-between gap-2 border-b border-emerald-400/20 shadow-sm sticky top-0 z-30 backdrop-blur-sm transition-all duration-300">
+            <div className="flex items-center justify-center gap-2 flex-grow">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-100 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+              </span>
+              <span className="font-bold text-xs md:text-sm tracking-wide text-center uppercase">
+                Database migration completed successfully. Full write access has been restored.
+              </span>
+            </div>
+            <button 
+              onClick={handleDismissMigrationComplete} 
+              className="text-white hover:text-emerald-100 p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+              title="Dismiss Notice"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
         <Outlet />
