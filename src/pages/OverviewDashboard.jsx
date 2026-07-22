@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchRecords } from '../lib/api';
-import { differenceInDays, format, parseISO, startOfMonth } from 'date-fns';
+import { differenceInDays, format, startOfMonth } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { LayoutDashboard, Link, AlertTriangle, Monitor, Globe } from 'lucide-react';
 
@@ -32,7 +32,7 @@ export default function OverviewDashboard() {
           if (r.status === 'Live' || r.status === 'Active') liveCount++;
           if (r.pageType === 'Vanity URL') vanityCount++;
           
-          if (r.expiryDate) {
+          if (r.expiryDate && r.pageType !== 'Vanity URL') {
              const expiry = new Date(r.expiryDate);
              const daysLeft = differenceInDays(expiry, now);
              if (daysLeft >= 0 && daysLeft <= 30 && (r.status === 'Live' || r.status === 'Active')) {
