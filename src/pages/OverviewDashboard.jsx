@@ -27,7 +27,7 @@ export default function OverviewDashboard() {
         const expiryByMonth = {};
 
         records.forEach(r => {
-          if (r.pageType === 'Akamai 301 Redirect') return; // Exclude Akamai from main stats
+          if (r.pageType === 'Akamai 301 Redirect' || r.pageType === 'Rewrite Rule') return; // Exclude Akamai & Rewrite Rules from main stats
           // Accumulate main stats
           if (r.status === 'Live' || r.status === 'Active') liveCount++;
           if (r.pageType === 'Vanity URL') vanityCount++;
@@ -60,7 +60,7 @@ export default function OverviewDashboard() {
         });
 
         setStats({
-          total: records.filter(r => r.pageType !== 'Akamai 301 Redirect').length,
+          total: records.filter(r => r.pageType !== 'Akamai 301 Redirect' && r.pageType !== 'Rewrite Rule').length,
           live: liveCount,
           expiringSoon: expiringCount,
           vanity: vanityCount
