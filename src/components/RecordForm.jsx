@@ -16,7 +16,8 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
     landingUrl: '',
     jiraNo: '',
     chgNo: '',
-    releaseDate: ''
+    releaseDate: '',
+    wmrNo: ''
   };
 
   const [formData, setFormData] = useState(() => {
@@ -170,9 +171,15 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
           )}
 
           {formData.pageType !== 'Akamai 301 Redirect' && formData.pageType !== 'Rewrite Rule' && (
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Content Owner</label>
-              <input type="text" name="ownerName" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.ownerName} onChange={handleChange} placeholder="Owner Name" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Content Owner</label>
+                <input type="text" name="ownerName" required={formData.pageType !== 'Akamai 301 Redirect'} value={formData.ownerName} onChange={handleChange} placeholder="Owner Name" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">WMR No</label>
+                <input type="text" name="wmrNo" value={formData.wmrNo || ''} onChange={handleChange} placeholder="e.g. WMR12345" className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all" />
+              </div>
             </div>
           )}
 

@@ -21,7 +21,7 @@ export function exportToCsv(filename, rows) {
     return;
   }
   
-  const headers = ['Full & Complete URL', 'Landing URL', 'Content owner SOEID', 'Content Owner Email ID', 'Page Type', 'Environment', 'Page Status', 'Expiry Date', 'Content Owner', 'CHG', 'Release Date', 'Release Month'];
+  const headers = ['Full & Complete URL', 'Landing URL', 'Content owner SOEID', 'Content Owner Email ID', 'Page Type', 'Environment', 'Page Status', 'Expiry Date', 'Content Owner', 'WMR', 'CHG', 'Release Date', 'Release Month'];
   
   const csvContent = [
     headers.join(','),
@@ -39,6 +39,7 @@ export function exportToCsv(filename, rows) {
         `"${r.status || ''}"`,
         `"${expiryDate}"`,
         `"${(r.ownerName || '').replace(/"/g, '""')}"`,
+        `"${r.wmrNo || ''}"`,
         `"${r.chgNo || ''}"`,
         `"${releaseDate}"`,
         `"${releaseMonth}"`
@@ -75,6 +76,7 @@ export function exportToXlsx(filename, rows) {
     'Page Status': r.status || '',
     'Expiry Date': r.expiryDate ? format(new Date(r.expiryDate), 'yyyy-MM-dd') : '',
     'Content Owner': r.ownerName || '',
+    'WMR': r.wmrNo || '',
     'CHG': r.chgNo || '',
     'Release Date': r.releaseDate ? format(new Date(r.releaseDate), 'yyyy-MM-dd') : '',
     'Release Month': getReleaseMonth(r.releaseDate)

@@ -40,12 +40,12 @@ app.post('/api/urls', async (req, res) => {
   try {
     const id = req.body.id || uuidv4();
     const now = new Date().toISOString();
-    const { url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate } = req.body;
+    const { url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, wmrNo } = req.body;
     
     await db.run(
-      `INSERT INTO urls (id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, createdAt, updatedAt) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment || 'ICMS', jiraNo, chgNo, releaseDate, now, now]
+      `INSERT INTO urls (id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, wmrNo, createdAt, updatedAt) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment || 'ICMS', jiraNo, chgNo, releaseDate, wmrNo, now, now]
     );
     
     const newRecord = await db.get('SELECT * FROM urls WHERE id = ?', id);
@@ -61,11 +61,11 @@ app.put('/api/urls/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const now = new Date().toISOString();
-    const { url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate } = req.body;
+    const { url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, wmrNo } = req.body;
     
     await db.run(
-      `UPDATE urls SET url = ?, landingUrl = ?, ownerName = ?, ownerSoeid = ?, ownerEmail = ?, pageType = ?, status = ?, expiryDate = ?, environment = ?, jiraNo = ?, chgNo = ?, releaseDate = ?, updatedAt = ? WHERE id = ?`,
-      [url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment || 'ICMS', jiraNo, chgNo, releaseDate, now, id]
+      `UPDATE urls SET url = ?, landingUrl = ?, ownerName = ?, ownerSoeid = ?, ownerEmail = ?, pageType = ?, status = ?, expiryDate = ?, environment = ?, jiraNo = ?, chgNo = ?, releaseDate = ?, wmrNo = ?, updatedAt = ? WHERE id = ?`,
+      [url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment || 'ICMS', jiraNo, chgNo, releaseDate, wmrNo, now, id]
     );
     
     const updatedRecord = await db.get('SELECT * FROM urls WHERE id = ?', id);
@@ -103,9 +103,9 @@ app.post('/api/urls/batch', async (req, res) => {
     for (const item of items) {
       const id = item.id || uuidv4();
       await db.run(
-        `INSERT INTO urls (id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, createdAt, updatedAt) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, item.url, item.landingUrl, item.ownerName, item.ownerSoeid, item.ownerEmail, item.pageType, item.status, item.expiryDate, item.environment || 'ICMS', item.jiraNo, item.chgNo, item.releaseDate, now, now]
+        `INSERT INTO urls (id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, wmrNo, createdAt, updatedAt) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, item.url, item.landingUrl, item.ownerName, item.ownerSoeid, item.ownerEmail, item.pageType, item.status, item.expiryDate, item.environment || 'ICMS', item.jiraNo, item.chgNo, item.releaseDate, item.wmrNo, now, now]
       );
     }
     

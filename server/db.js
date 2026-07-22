@@ -60,6 +60,11 @@ export async function initDb() {
     await db.exec("ALTER TABLE urls ADD COLUMN releaseDate TEXT");
   }
 
+  const hasWmrNo = tableInfo.some(col => col.name === 'wmrNo');
+  if (!hasWmrNo) {
+    await db.exec("ALTER TABLE urls ADD COLUMN wmrNo TEXT");
+  }
+
   console.log('Database initialized');
   return db;
 }

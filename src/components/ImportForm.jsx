@@ -112,6 +112,8 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           const chgKey = keys.find(k => k.toLowerCase().includes('chg') || k.toLowerCase().includes('change') || k.toLowerCase().includes('jira'));
           // Look for Release Date headers (excluding created/updated/expiry)
           const releaseDateKey = keys.find(k => (k.toLowerCase().includes('release') || k.toLowerCase().includes('date')) && !k.toLowerCase().includes('created') && !k.toLowerCase().includes('updated') && !k.toLowerCase().includes('expiry'));
+          // Look for WMR / Request ID headers
+          const wmrKey = keys.find(k => k.toLowerCase().includes('wmr') || k.toLowerCase().includes('request id') || k.toLowerCase().includes('work request'));
 
           // Basic map
           const mappedRecord = {
@@ -126,6 +128,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
             expiryDate: expiryKey ? parseExcelDate(row[expiryKey]) : '',
             chgNo: chgKey ? String(row[chgKey]) : '',
             releaseDate: releaseDateKey ? parseExcelDate(row[releaseDateKey]) : '',
+            wmrNo: wmrKey ? String(row[wmrKey]) : '',
             createdAt: new Date().toISOString()
           };
 

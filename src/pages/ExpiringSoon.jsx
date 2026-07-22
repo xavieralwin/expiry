@@ -48,7 +48,8 @@ export default function ExpiringSoon() {
       (record.ownerSoeid || '').toLowerCase().includes(term) ||
       (record.ownerEmail || '').toLowerCase().includes(term) ||
       (record.pageType || '').toLowerCase().includes(term) ||
-      (record.environment || '').toLowerCase().includes(term)
+      (record.environment || '').toLowerCase().includes(term) ||
+      (record.wmrNo || '').toLowerCase().includes(term)
     );
   });
 
@@ -138,15 +139,16 @@ export default function ExpiringSoon() {
               <th className="p-4 font-medium min-w-[100px]">Environment</th>
               <th className="p-4 font-medium">Owner SOEID & Email</th>
               <th className="p-4 font-medium">Content Owner</th>
+              <th className="p-4 font-medium">WMR No</th>
               <th className="p-4 font-medium">Expiry Date</th>
               <th className="p-4 font-medium text-right">Days Left</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {loading ? (
-              <tr><td colSpan="7" className="p-8 text-center text-slate-400">Loading records...</td></tr>
+              <tr><td colSpan="8" className="p-8 text-center text-slate-400">Loading records...</td></tr>
             ) : paginatedRecords.length === 0 ? (
-              <tr><td colSpan="7" className="p-12 text-center text-slate-400">No records found.</td></tr>
+              <tr><td colSpan="8" className="p-12 text-center text-slate-400">No records found.</td></tr>
             ) : paginatedRecords.map(record => {
               const daysLeft = differenceInDays(new Date(record.expiryDate), new Date());
               const isExpired = daysLeft < 0;
@@ -167,6 +169,7 @@ export default function ExpiringSoon() {
                   </div>
                 </td>
                 <td className="p-4 text-slate-600">{record.ownerName || '-'}</td>
+                <td className="p-4 text-slate-600 font-medium">{record.wmrNo || '-'}</td>
                 <td className="p-4 font-bold text-red-600">
                   {format(new Date(record.expiryDate), 'MMM d, yyyy')}
                 </td>

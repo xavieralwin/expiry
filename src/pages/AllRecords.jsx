@@ -72,7 +72,8 @@ export default function AllRecords() {
       (record.ownerEmail || '').toLowerCase().includes(term) ||
       (record.pageType || '').toLowerCase().includes(term) ||
       (record.environment || '').toLowerCase().includes(term) ||
-      (record.status || '').toLowerCase().includes(term)
+      (record.status || '').toLowerCase().includes(term) ||
+      (record.wmrNo || '').toLowerCase().includes(term)
     );
   });
 
@@ -158,15 +159,16 @@ export default function AllRecords() {
               <th className="p-4 font-medium" style={{minWidth: '120px'}}>Page Status</th>
               <th className="p-4 font-medium">Owner SOEID & Email</th>
               <th className="p-4 font-medium">Content Owner</th>
+              <th className="p-4 font-medium">WMR No</th>
               <th className="p-4 font-medium">Expiry Date</th>
               <th className="p-4 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {loading ? (
-              <tr><td colSpan="7" className="p-8 text-center text-slate-400">Loading records...</td></tr>
+              <tr><td colSpan="8" className="p-8 text-center text-slate-400">Loading records...</td></tr>
             ) : paginatedRecords.length === 0 ? (
-              <tr><td colSpan="7" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
+              <tr><td colSpan="8" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
             ) : paginatedRecords.map(record => (
               <tr key={record.id} className="hover:bg-slate-50 transition-colors">
                 <td className="p-4">
@@ -193,6 +195,9 @@ export default function AllRecords() {
                 </td>
                 <td className="p-4 text-slate-600">
                   {record.ownerName || '-'}
+                </td>
+                <td className="p-4 text-slate-600 font-medium">
+                  {record.wmrNo || '-'}
                 </td>
                 <td className="p-4">
                   {record.expiryDate ? (
