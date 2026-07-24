@@ -49,14 +49,24 @@ export default function RecordForm({ initialData, onClose, onSave, defaultPageTy
       // If we are editing, we ignore the check if the URL didn't change (or if type changed, we re-evaluate)
       if (!initialData || initialData.url !== formData.url || initialData.pageType !== formData.pageType) {
         const existingRecords = await fetchRecords();
+        const getListCategory = (type) => {
+          if (type === 'Akamai 301 Redirect') return 'Akamai 301 Redirect';
+          if (type === 'Rewrite Rule') return 'Rewrite Rule';
+          if (type === 'Vanity URL') return 'Vanity URL';
+          return 'General';
+        };
+
+        const targetCategory = getListCategory(formData.pageType);
+
         const exists = existingRecords.some(r => {
-           const isAkamaiExisting = r.pageType === 'Akamai 301 Redirect';
-           const isAkamaiNew = formData.pageType === 'Akamai 301 Redirect';
-           // If they don't belong to the same "list", they are not duplicates
-           if (isAkamaiExisting !== isAkamaiNew) return false;
-           // If it's the exact same record we're editing, it's not a duplicate
+           // If they don't belong to the same list category, they are not duplicates across lists
+           if (getListCategory(r.pageType) !== targetCategory) return false;
+           // If it's the exact same record we're editing, ignore
            if (initialData && r.id === initialData.id) return false;
-           return r.url === formData.url;
+           
+           const normExisting = (r.url || '').toLowerCase().trim().replace(/\/index\.html?$/i, '').replace(/\/+$/, '');
+           const normNew = (formData.url || '').toLowerCase().trim().replace(/\/index\.html?$/i, '').replace(/\/+$/, '');
+           return normExisting === normNew;
         });
         if (exists) {
           setError('This URL already exists in this list. URLs must be unique per list.');
