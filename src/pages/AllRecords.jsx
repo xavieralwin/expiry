@@ -67,6 +67,7 @@ export default function AllRecords() {
     const term = searchTerm.toLowerCase();
     return (
       (record.url || '').toLowerCase().includes(term) ||
+      (record.landingUrl || '').toLowerCase().includes(term) ||
       (record.ownerName || '').toLowerCase().includes(term) ||
       (record.ownerSoeid || '').toLowerCase().includes(term) ||
       (record.ownerEmail || '').toLowerCase().includes(term) ||
@@ -77,9 +78,15 @@ export default function AllRecords() {
     );
   });
 
-  // Smart Exact Match: If the user searches for an exact URL, only show that specific URL.
+  // Smart Exact Match: Ignore index.html and trailing slashes so all variations match as exact
   if (searchTerm) {
-    const exactMatches = filteredRecords.filter(r => (r.url || '').toLowerCase() === searchTerm.toLowerCase());
+    const cleanUrl = (str) => (str || '').toLowerCase().trim().replace(/\/index\.html?$/i, '').replace(/\/+$/, '');
+    const normTerm = cleanUrl(searchTerm);
+    const exactMatches = filteredRecords.filter(r => {
+      const normUrl = cleanUrl(r.url);
+      const normLanding = cleanUrl(r.landingUrl);
+      return normUrl === normTerm || (normLanding && normLanding === normTerm);
+    });
     if (exactMatches.length > 0) {
       filteredRecords = exactMatches;
     }

@@ -77,9 +77,15 @@ export default function VanityURLs() {
     );
   });
 
-  // Smart Exact Match: If the user searches for an exact URL, only show that specific URL.
+  // Smart Exact Match: Ignore index.html and trailing slashes so all variations match as exact
   if (searchTerm) {
-    const exactMatches = filteredRecords.filter(r => (r.url || '').toLowerCase() === searchTerm.toLowerCase());
+    const cleanUrl = (str) => (str || '').toLowerCase().trim().replace(/\/index\.html?$/i, '').replace(/\/+$/, '');
+    const normTerm = cleanUrl(searchTerm);
+    const exactMatches = filteredRecords.filter(r => {
+      const normUrl = cleanUrl(r.url);
+      const normLanding = cleanUrl(r.landingUrl);
+      return normUrl === normTerm || (normLanding && normLanding === normTerm);
+    });
     if (exactMatches.length > 0) {
       filteredRecords = exactMatches;
     }
