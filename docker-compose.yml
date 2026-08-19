@@ -3,22 +3,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: url-expiry-tracker-frontend
     restart: unless-stopped
     depends_on:
       - backend
-    ports:
-      - "8081:8080"
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    container_name: url-expiry-tracker-backend
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      - PORT=3001
+      PORT: 3001
     volumes:
       - ./server:/app/server
