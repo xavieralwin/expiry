@@ -17,4 +17,4 @@ services:
     environment:
       PORT: 3001
     volumes:
-      - './server/database.sqlite:/app/server/database.sqlite'
+      - '/data/coolify/databases/expiry/database.sqlite:/app/server/database.sqlite'
