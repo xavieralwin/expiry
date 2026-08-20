@@ -8,13 +8,19 @@ services:
       - backend
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      PORT: 3001
-    volumes:
-      - '/data/coolify/databases/expiry/database.sqlite:/app/server/database.sqlite'
+  build:
+    context: .
+    dockerfile: Dockerfile.backend
+  restart: unless-stopped
+  env_file:
+    - .env
+  environment:
+    PORT: 3001
+  volumes:
+    - '/data/coolify/databases/expiry/database.sqlite:/app/server/database.sqlite'
+  healthcheck:
+    test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 10s
