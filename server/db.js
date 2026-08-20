@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 export async function getDb() {
   const db = await open({
-    filename: path.join(__dirname, 'database.sqlite'),
+    filename: '/app/data/database.sqlite',
     driver: sqlite3.Database
   });
   await db.run("PRAGMA busy_timeout = 5000");
