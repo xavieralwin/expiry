@@ -1,11 +1,35 @@
-import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import { NavLink } from 'react-router-dom';
-import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, NavLink, useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link, Calendar, Bell, UserCheck } from 'lucide-react';
 import { trackButtonClick } from '../lib/analytics';
 import { IS_DB_MIGRATION_ACTIVE, IS_DB_MIGRATION_COMPLETE } from '../lib/maintenance';
 import MaintenanceModal from './MaintenanceModal';
+import { fetchMALeaves } from '../lib/api';
+
+function parseDateString(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const str = dateStr.trim();
+  if (!str) return null;
+
+  const mdYMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (mdYMatch) {
+    const month = parseInt(mdYMatch[1], 10) - 1;
+    const day = parseInt(mdYMatch[2], 10);
+    const year = parseInt(mdYMatch[3], 10);
+    return new Date(year, month, day);
+  }
+
+  const yMdMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (yMdMatch) {
+    const year = parseInt(yMdMatch[1], 10);
+    const month = parseInt(yMdMatch[2], 10) - 1;
+    const day = parseInt(yMdMatch[3], 10);
+    return new Date(year, month, day);
+  }
+
+  const fallback = new Date(str);
+  return isNaN(fallback.getTime()) ? null : fallback;
+}
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -13,6 +37,73 @@ export default function Layout() {
   const [isMigrationCompleteDismissed, setIsMigrationCompleteDismissed] = useState(
     () => sessionStorage.getItem('migration_complete_dismissed') === 'true'
   );
+
+  // MA Leave notification state
+  const [maBannerText, setMaBannerText] = useState('');
+  const [isMaBannerDismissed, setIsMaBannerDismissed] = useState(
+    () => sessionStorage.getItem('ma_banner_dismissed') === 'true'
+  );
+
+  useEffect(() => {
+    loadMaNotification();
+    const handleUpdate = () => loadMaNotification();
+    window.addEventListener('ma-leaves-updated', handleUpdate);
+    return () => window.removeEventListener('ma-leaves-updated', handleUpdate);
+  }, []);
+
+  const loadMaNotification = async () => {
+    try {
+      const leaves = await fetchMALeaves();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Find active leaves based on date range or Ongoing status
+      const activeLeaves = leaves.filter(l => {
+        if (l.maStatus === 'Ongoing') return true;
+        const from = parseDateString(l.fromDate);
+        const to = parseDateString(l.toDate);
+        if (from && to) {
+          from.setHours(0, 0, 0, 0);
+          to.setHours(23, 59, 59, 999);
+          return today >= from && today <= to;
+        }
+        return false;
+      });
+
+      if (activeLeaves.length > 0) {
+        const details = activeLeaves.map(l => `${l.seoId} (${l.idName})`).join(', ');
+        setMaBannerText(`📢 MA Mandatory Leave Alert: ${details} ${activeLeaves.length === 1 ? 'is' : 'are'} on mandatory leave (mandy) this week!`);
+        return;
+      }
+
+      // If no active leave today, check for upcoming leave
+      const upcomingLeaves = leaves
+        .map(l => ({ ...l, parsedFrom: parseDateString(l.fromDate) }))
+        .filter(l => l.parsedFrom && l.parsedFrom >= today)
+        .sort((a, b) => a.parsedFrom - b.parsedFrom);
+
+      if (upcomingLeaves.length > 0) {
+        const next = upcomingLeaves[0];
+        setMaBannerText(`📢 Upcoming MA Leave: ${next.seoId} (${next.idName}) is scheduled from ${next.fromDate} to ${next.toDate}.`);
+        return;
+      }
+
+      // Fallback if no dates set
+      const defaultActive = leaves.find(l => l.seoId === 'KA10005') || leaves[0];
+      if (defaultActive) {
+        setMaBannerText(`📢 MA Mandatory Leave Alert: ${defaultActive.seoId} (${defaultActive.idName}) is on mandatory leave (mandy) this week!`);
+      } else {
+        setMaBannerText('📢 MA Mandatory Leave Alert: KA10005 (Ankit) is on mandatory leave (mandy) this week!');
+      }
+    } catch {
+      setMaBannerText('📢 MA Mandatory Leave Alert: KA10005 (Ankit) is on mandatory leave (mandy) this week!');
+    }
+  };
+
+  const handleDismissMaBanner = () => {
+    sessionStorage.setItem('ma_banner_dismissed', 'true');
+    setIsMaBannerDismissed(true);
+  };
 
   const handleDismissMigrationComplete = () => {
     trackButtonClick('Migration Complete Notice - Dismissed');
@@ -97,6 +188,18 @@ export default function Layout() {
           </NavLink>
 
           <NavLink 
+            to="/ma-leave-tracker" 
+            onClick={() => { trackButtonClick('Sidebar - MA Leave Tracker'); closeMobileMenu(); }}
+            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-purple-600 text-white font-bold shadow-md' : 'text-slate-500 hover:bg-purple-100 hover:text-purple-900 font-medium'}`}
+          >
+            <Calendar className="w-5 h-5 text-purple-400" />
+            <div className="flex items-center justify-between w-full">
+              <span>MA Leave Tracker</span>
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+            </div>
+          </NavLink>
+
+          <NavLink 
             to="/vanity" 
             onClick={() => { trackButtonClick('Sidebar - Vanity URLs'); closeMobileMenu(); }}
             className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-[#fef08a] text-yellow-950 font-bold shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}
@@ -146,6 +249,36 @@ export default function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 min-w-0 overflow-auto pt-16 md:pt-0 relative z-0">
+        
+        {/* Global MA Leave Notification Banner */}
+        {!isMaBannerDismissed && maBannerText && (
+          <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-white px-4 py-2.5 flex items-center justify-between gap-3 border-b border-purple-700/50 shadow-md sticky top-0 z-40 backdrop-blur-md">
+            <div className="flex items-center justify-center gap-2.5 flex-grow text-xs md:text-sm font-semibold tracking-wide">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-300 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-400"></span>
+              </span>
+              <Bell className="w-4 h-4 text-purple-300 flex-shrink-0 animate-bounce" />
+              <span className="text-purple-100 font-bold drop-shadow-sm">
+                {maBannerText}
+              </span>
+              <RouterLink 
+                to="/ma-leave-tracker" 
+                className="ml-2 px-2.5 py-0.5 bg-purple-500/30 hover:bg-purple-500/50 border border-purple-400/40 text-purple-200 rounded-full text-xs font-bold transition-all underline decoration-purple-300 decoration-2 underline-offset-2 hover:text-white"
+              >
+                View Tracker &rarr;
+              </RouterLink>
+            </div>
+            <button 
+              onClick={handleDismissMaBanner} 
+              className="text-purple-200 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer flex-shrink-0"
+              title="Dismiss Notification"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {IS_DB_MIGRATION_ACTIVE && (
           <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white px-4 py-3 flex items-center justify-center gap-2 border-b border-orange-400/20 shadow-sm sticky top-0 z-30 backdrop-blur-sm">
             <span className="relative flex h-2.5 w-2.5">
@@ -183,3 +316,4 @@ export default function Layout() {
     </div>
   );
 }
+

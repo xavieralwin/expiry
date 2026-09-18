@@ -225,3 +225,70 @@ app.post('/api/urls/notify', async (req, res) => {
     res.status(500).json({ error: 'Failed to send emails. Check your SMTP configuration.' });
   }
 });
+
+// ==================== MA LEAVES API ====================
+
+// GET /api/ma-leaves
+app.get('/api/ma-leaves', async (req, res) => {
+  try {
+    const leaves = await db.all('SELECT * FROM ma_leaves ORDER BY idName ASC');
+    res.json(leaves);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch MA leaves' });
+  }
+});
+
+// POST /api/ma-leaves
+app.post('/api/ma-leaves', async (req, res) => {
+  try {
+    const id = req.body.id || `ma-${uuidv4()}`;
+    const now = new Date().toISOString();
+    const { seoId, idName, mappingIds, fromDate, toDate, applied, maStatus } = req.body;
+    
+    await db.run(
+      `INSERT INTO ma_leaves (id, seoId, idName, mappingIds, fromDate, toDate, applied, maStatus, createdAt, updatedAt) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, seoId, idName, mappingIds || '', fromDate || '', toDate || '', applied || 'Done', maStatus || 'Not started', now, now]
+    );
+    
+    const newRecord = await db.get('SELECT * FROM ma_leaves WHERE id = ?', id);
+    res.status(201).json(newRecord);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create MA leave record' });
+  }
+});
+
+// PUT /api/ma-leaves/:id
+app.put('/api/ma-leaves/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const now = new Date().toISOString();
+    const { seoId, idName, mappingIds, fromDate, toDate, applied, maStatus } = req.body;
+    
+    await db.run(
+      `UPDATE ma_leaves SET seoId = ?, idName = ?, mappingIds = ?, fromDate = ?, toDate = ?, applied = ?, maStatus = ?, updatedAt = ? WHERE id = ?`,
+      [seoId, idName, mappingIds, fromDate, toDate, applied, maStatus, now, id]
+    );
+    
+    const updatedRecord = await db.get('SELECT * FROM ma_leaves WHERE id = ?', id);
+    res.json(updatedRecord);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update MA leave record' });
+  }
+});
+
+// DELETE /api/ma-leaves/:id
+app.delete('/api/ma-leaves/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.run('DELETE FROM ma_leaves WHERE id = ?', id);
+    res.json({ success: true, id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete MA leave record' });
+  }
+});
+
