@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link, Calendar, Bell, UserCheck } from 'lucide-react';
+import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link, Calendar, Bell, UserCheck, ShieldCheck } from 'lucide-react';
 import { trackButtonClick } from '../lib/analytics';
 import { IS_DB_MIGRATION_ACTIVE, IS_DB_MIGRATION_COMPLETE } from '../lib/maintenance';
 import MaintenanceModal from './MaintenanceModal';
@@ -188,18 +188,6 @@ export default function Layout() {
           </NavLink>
 
           <NavLink 
-            to="/ma-leave-tracker" 
-            onClick={() => { trackButtonClick('Sidebar - MA Leave Tracker'); closeMobileMenu(); }}
-            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-purple-600 text-white font-bold shadow-md' : 'text-slate-500 hover:bg-purple-100 hover:text-purple-900 font-medium'}`}
-          >
-            <Calendar className="w-5 h-5 text-purple-400" />
-            <div className="flex items-center justify-between w-full">
-              <span>MA Leave Tracker</span>
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-            </div>
-          </NavLink>
-
-          <NavLink 
             to="/vanity" 
             onClick={() => { trackButtonClick('Sidebar - Vanity URLs'); closeMobileMenu(); }}
             className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-[#fef08a] text-yellow-950 font-bold shadow-sm' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-800'}`}
@@ -233,6 +221,27 @@ export default function Layout() {
           >
             <Clock className="w-5 h-5" />
             <span>Expiring Soon</span>
+          </NavLink>
+
+          <NavLink 
+            to="/ma-leave-tracker" 
+            onClick={() => { trackButtonClick('Sidebar - MA Leave Tracker'); closeMobileMenu(); }}
+            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-purple-600 text-white font-bold shadow-md' : 'text-slate-500 hover:bg-purple-100 hover:text-purple-900 font-medium'}`}
+          >
+            <Calendar className="w-5 h-5 text-purple-400" />
+            <div className="flex items-center justify-between w-full">
+              <span>MA Leave Tracker</span>
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+            </div>
+          </NavLink>
+
+          <NavLink 
+            to="/soe-access-matrix" 
+            onClick={() => { trackButtonClick('Sidebar - SOE Access'); closeMobileMenu(); }}
+            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-indigo-600 text-white font-bold shadow-md' : 'text-slate-500 hover:bg-indigo-100 hover:text-indigo-900 font-medium'}`}
+          >
+            <ShieldCheck className="w-5 h-5 text-indigo-400" />
+            <span>SOE Access</span>
           </NavLink>
         </nav>
         

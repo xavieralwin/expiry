@@ -292,3 +292,82 @@ app.delete('/api/ma-leaves/:id', async (req, res) => {
   }
 });
 
+// ==================== SOE ACCESS API ====================
+
+// GET /api/soe-access
+app.get('/api/soe-access', async (req, res) => {
+  try {
+    const rows = await db.all('SELECT * FROM soe_access ORDER BY name ASC');
+    const result = rows.map(r => ({
+      ...r,
+      accessFlags: r.accessFlags ? JSON.parse(r.accessFlags) : {}
+    }));
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch SOE access list' });
+  }
+});
+
+// POST /api/soe-access
+app.post('/api/soe-access', async (req, res) => {
+  try {
+    const id = req.body.id || `soe-${uuidv4()}`;
+    const now = new Date().toISOString();
+    const { name, soeId, email, accessFlags } = req.body;
+    const flagsJson = JSON.stringify(accessFlags || {});
+
+    await db.run(
+      `INSERT INTO soe_access (id, name, soeId, email, accessFlags, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [id, name, soeId, email || '', flagsJson, now, now]
+    );
+
+    const newRecord = await db.get('SELECT * FROM soe_access WHERE id = ?', id);
+    res.status(201).json({
+      ...newRecord,
+      accessFlags: newRecord.accessFlags ? JSON.parse(newRecord.accessFlags) : {}
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create SOE resource' });
+  }
+});
+
+// PUT /api/soe-access/:id
+app.put('/api/soe-access/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const now = new Date().toISOString();
+    const { name, soeId, email, accessFlags } = req.body;
+    const flagsJson = JSON.stringify(accessFlags || {});
+
+    await db.run(
+      `UPDATE soe_access SET name = ?, soeId = ?, email = ?, accessFlags = ?, updatedAt = ? WHERE id = ?`,
+      [name, soeId, email, flagsJson, now, id]
+    );
+
+    const updatedRecord = await db.get('SELECT * FROM soe_access WHERE id = ?', id);
+    res.json({
+      ...updatedRecord,
+      accessFlags: updatedRecord.accessFlags ? JSON.parse(updatedRecord.accessFlags) : {}
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update SOE resource' });
+  }
+});
+
+// DELETE /api/soe-access/:id
+app.delete('/api/soe-access/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.run('DELETE FROM soe_access WHERE id = ?', id);
+    res.json({ success: true, id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete SOE resource' });
+  }
+});
+
+

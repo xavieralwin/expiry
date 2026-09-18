@@ -126,6 +126,48 @@ export async function initDb() {
     console.log('Seeded initial MA leaves');
   }
 
+  // SOE Access Table Creation
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS soe_access (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      soeId TEXT NOT NULL,
+      email TEXT,
+      accessFlags TEXT,
+      createdAt TEXT,
+      updatedAt TEXT
+    )
+  `);
+
+  const soeCount = await db.get("SELECT COUNT(*) as count FROM soe_access");
+  if (soeCount && soeCount.count === 0) {
+    const seedSoe = [
+      { id: 'soe-1', name: 'Alwin', soeId: 'AJ26015', email: 'alwin.johnpackiam@citi.com', accessFlags: JSON.stringify({ drupal_sg: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, drupal_cloud_sg: true, drupal_cloud_ipb: true, drupal_cloud_uat2_sg: true, drupal_cloud_uat2_ipb: true, moengage_sg: true, aem_sg: true, aem_uat2_sg: true, akamai_sg: true, intralinks: true }) },
+      { id: 'soe-2', name: 'Ankit', soeId: 'KA10005', email: 'kushagra.ankit.amitverma@citi.com', accessFlags: JSON.stringify({}) },
+      { id: 'soe-3', name: 'Asaithambi', soeId: 'AM28856', email: 'asaithambi@citi.com', accessFlags: JSON.stringify({}) },
+      { id: 'soe-4', name: 'Arun', soeId: 'AV90366', email: 'arunkumar.venu@citi.com', accessFlags: JSON.stringify({}) },
+      { id: 'soe-5', name: 'Dhanya', soeId: 'DJ26014', email: 'dhanya.jamesgodwin@citi.com', accessFlags: JSON.stringify({}) },
+      { id: 'soe-6', name: 'Naveen', soeId: 'NC70471', email: 'naveen.c@citi.com', accessFlags: JSON.stringify({ drupal_sg: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, drupal_cloud_sg: true, moengage_sg: true, moengage_ipb: true, aem_sg: true, akamai_sg: true, intralinks: true }) },
+      { id: 'soe-7', name: 'Premkumar', soeId: 'PG52851', email: 'premkumar.govindaannan@citi.com', accessFlags: JSON.stringify({}) },
+      { id: 'soe-8', name: 'Sunil', soeId: 'PS09955', email: 'sunil.pratick@citi.com', accessFlags: JSON.stringify({}) },
+      { id: 'soe-9', name: 'Santhosh', soeId: 'SM39849', email: 'santhosh.kumar.murugesan@citi.com', accessFlags: JSON.stringify({ drupal_sg: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, drupal_cloud_sg: true, moengage_sg: true, moengage_ipb: true, aem_sg: true }) },
+      { id: 'soe-10', name: 'Deepika', soeId: 'SV52825', email: 'deepikasanglilimuthu@citi.com', accessFlags: JSON.stringify({ drupal_sg: true, drupal_ipb: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, moengage_ipb: true, aem_sg: true }) },
+      { id: 'soe-11', name: 'Vasanth', soeId: 'VB55549', email: 'vasanthakumar.baskaran@citi.com', accessFlags: JSON.stringify({ drupal_sg: true, drupal_ipb: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, moengage_ipb: true, aem_sg: true }) },
+      { id: 'soe-12', name: 'Mahadevi', soeId: 'MM33844', email: 'mahadevi.marichamy@citi.com', accessFlags: JSON.stringify({ drupal_sg: true, drupal_ipb: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, moengage_ipb: true, aem_sg: true }) },
+      { id: 'soe-13', name: 'Tamillarasi', soeId: 'TR71869', email: 'tamilarasi.rathinavelu@citi.com', accessFlags: JSON.stringify({ drupal_sg: true, drupal_ipb: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, moengage_sg: true }) }
+    ];
+
+    const now = new Date().toISOString();
+    for (const item of seedSoe) {
+      await db.run(
+        `INSERT INTO soe_access (id, name, soeId, email, accessFlags, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [item.id, item.name, item.soeId, item.email, item.accessFlags, now, now]
+      );
+    }
+    console.log('Seeded initial SOE access list');
+  }
+
   console.log('Database initialized');
   return db;
 }

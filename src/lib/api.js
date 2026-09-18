@@ -175,3 +175,86 @@ export async function deleteMALeave(id) {
   return { success: true, id };
 }
 
+// ==================== SOE ACCESS API HELPERS ====================
+
+const INITIAL_SOE_ACCESS = [
+  { id: 'soe-1', name: 'Alwin', soeId: 'AJ26015', email: 'alwin.johnpackiam@citi.com', accessFlags: { drupal_sg: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, drupal_cloud_sg: true, drupal_cloud_ipb: true, drupal_cloud_uat2_sg: true, drupal_cloud_uat2_ipb: true, moengage_sg: true, aem_sg: true, aem_uat2_sg: true, akamai_sg: true, intralinks: true } },
+  { id: 'soe-2', name: 'Ankit', soeId: 'KA10005', email: 'kushagra.ankit.amitverma@citi.com', accessFlags: {} },
+  { id: 'soe-3', name: 'Asaithambi', soeId: 'AM28856', email: 'asaithambi@citi.com', accessFlags: {} },
+  { id: 'soe-4', name: 'Arun', soeId: 'AV90366', email: 'arunkumar.venu@citi.com', accessFlags: {} },
+  { id: 'soe-5', name: 'Dhanya', soeId: 'DJ26014', email: 'dhanya.jamesgodwin@citi.com', accessFlags: {} },
+  { id: 'soe-6', name: 'Naveen', soeId: 'NC70471', email: 'naveen.c@citi.com', accessFlags: { drupal_sg: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, drupal_cloud_sg: true, moengage_sg: true, moengage_ipb: true, aem_sg: true, akamai_sg: true, intralinks: true } },
+  { id: 'soe-7', name: 'Premkumar', soeId: 'PG52851', email: 'premkumar.govindaannan@citi.com', accessFlags: {} },
+  { id: 'soe-8', name: 'Sunil', soeId: 'PS09955', email: 'sunil.pratick@citi.com', accessFlags: {} },
+  { id: 'soe-9', name: 'Santhosh', soeId: 'SM39849', email: 'santhosh.kumar.murugesan@citi.com', accessFlags: { drupal_sg: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, drupal_cloud_sg: true, moengage_sg: true, moengage_ipb: true, aem_sg: true } },
+  { id: 'soe-10', name: 'Deepika', soeId: 'SV52825', email: 'deepikasanglilimuthu@citi.com', accessFlags: { drupal_sg: true, drupal_ipb: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, moengage_ipb: true, aem_sg: true } },
+  { id: 'soe-11', name: 'Vasanth', soeId: 'VB55549', email: 'vasanthakumar.baskaran@citi.com', accessFlags: { drupal_sg: true, drupal_ipb: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, moengage_ipb: true, aem_sg: true } },
+  { id: 'soe-12', name: 'Mahadevi', soeId: 'MM33844', email: 'mahadevi.marichamy@citi.com', accessFlags: { drupal_sg: true, drupal_ipb: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, moengage_ipb: true, aem_sg: true } },
+  { id: 'soe-13', name: 'Tamillarasi', soeId: 'TR71869', email: 'tamilarasi.rathinavelu@citi.com', accessFlags: { drupal_sg: true, drupal_ipb: true, drupal_uat2_sg: true, drupal_uat2_ipb: true, moengage_sg: true } }
+];
+
+export async function fetchSOEAccess() {
+  try {
+    const res = await fetch(`${API_BASE}/soe-access`);
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      localStorage.setItem('soe_access_backup', JSON.stringify(data));
+      return data;
+    }
+  } catch { /* ignore */ }
+
+  const stored = localStorage.getItem('soe_access_backup');
+  if (stored) {
+    try { return JSON.parse(stored); } catch { /* ignore */ }
+  }
+  localStorage.setItem('soe_access_backup', JSON.stringify(INITIAL_SOE_ACCESS));
+  return INITIAL_SOE_ACCESS;
+}
+
+export async function addSOEResource(data) {
+  try {
+    const res = await fetch(`${API_BASE}/soe-access`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) return await res.json();
+  } catch { /* ignore */ }
+
+  const current = await fetchSOEAccess();
+  const newItem = { id: `soe-${Date.now()}`, ...data };
+  const updated = [newItem, ...current];
+  localStorage.setItem('soe_access_backup', JSON.stringify(updated));
+  return newItem;
+}
+
+export async function updateSOEResource(id, data) {
+  try {
+    const res = await fetch(`${API_BASE}/soe-access/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) return await res.json();
+  } catch { /* ignore */ }
+
+  const current = await fetchSOEAccess();
+  const updated = current.map(item => item.id === id ? { ...item, ...data } : item);
+  localStorage.setItem('soe_access_backup', JSON.stringify(updated));
+  return { id, ...data };
+}
+
+export async function deleteSOEResource(id) {
+  try {
+    const res = await fetch(`${API_BASE}/soe-access/${id}`, { method: 'DELETE' });
+    if (res.ok) return await res.json();
+  } catch { /* ignore */ }
+
+  const current = await fetchSOEAccess();
+  const updated = current.filter(item => item.id !== id);
+  localStorage.setItem('soe_access_backup', JSON.stringify(updated));
+  return { success: true, id };
+}
+
+
