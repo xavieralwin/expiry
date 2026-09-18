@@ -1,6 +1,6 @@
 # URL Expiry Tracker
 
-React + Vite frontend with an Express + SQLite backend.  
+React + Vite frontend with an Express + SQLite backend.
 
 ## Local development
 
