@@ -105,7 +105,7 @@ const INITIAL_MA_LEAVES = [
   { id: 'ma-8', seoId: 'nc70471', idName: 'Naveen', mappingIds: 'Project', fromDate: '07-13-2026', toDate: '07-17-2026', applied: 'Done', maStatus: 'Completed' },
   { id: 'ma-9', seoId: 'Pg52851', idName: 'Prem Kumar', mappingIds: 'BAU', fromDate: '08-03-2026', toDate: '08-07-2026', applied: 'Done', maStatus: 'Completed' },
   { id: 'ma-10', seoId: 'ps09955', idName: 'Sunil Jagtap, Pratik', mappingIds: 'BAU', fromDate: '08-10-2026', toDate: '08-14-2026', applied: 'Done', maStatus: 'Completed' },
-  { id: 'ma-11', seoId: 'SM39849', idName: 'Santhosh', mappingIds: 'BAU', fromDate: '09-14-2026', toDate: '09-18-2026', applied: 'Done', maStatus: 'Ongoing' },
+  { id: 'ma-11', seoId: 'SM39849', idName: 'Santhosh', mappingIds: 'BAU', fromDate: '09-14-2026', toDate: '09-18-2026', applied: 'Done', maStatus: 'Completed' },
   { id: 'ma-12', seoId: 'vb55549', idName: 'Vasanthakumar', mappingIds: 'Moenage', fromDate: '10-12-2026', toDate: '10-16-2026', applied: 'Done', maStatus: 'Not started' },
   { id: 'ma-13', seoId: 'TR71869', idName: 'Tamilarasi Rathinavelu', mappingIds: '', fromDate: '', toDate: '', applied: '', maStatus: 'Not started' }
 ];

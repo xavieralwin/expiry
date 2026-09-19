@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
@@ -9,12 +11,24 @@
   --font-sans: "Inter", system-ui, sans-serif;
 }
 
+/* Smooth theme transitions across backgrounds, borders, and text */
+*, ::before, ::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
 body {
   margin: 0;
   background-color: #f8fafc;
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
   font-size: 14px;
+}
+
+html.dark body {
+  background-color: #090d16;
+  color: #f1f5f9;
 }
 
 html {

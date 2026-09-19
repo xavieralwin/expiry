@@ -21,6 +21,80 @@ import { fetchMALeaves, addMALeave, updateMALeave, deleteMALeave } from '../lib/
 import { exportToCsv } from '../lib/exportCsv';
 import { trackButtonClick } from '../lib/analytics';
 
+function parseDateString(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const str = dateStr.trim();
+  if (!str) return null;
+
+  const mdYMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (mdYMatch) {
+    const month = parseInt(mdYMatch[1], 10) - 1;
+    const day = parseInt(mdYMatch[2], 10);
+    const year = parseInt(mdYMatch[3], 10);
+    return new Date(year, month, day);
+  }
+
+  const yMdMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (yMdMatch) {
+    const year = parseInt(yMdMatch[1], 10);
+    const month = parseInt(yMdMatch[2], 10) - 1;
+    const day = parseInt(yMdMatch[3], 10);
+    return new Date(year, month, day);
+  }
+
+  const fallback = new Date(str);
+  return isNaN(fallback.getTime()) ? null : fallback;
+}
+
+function evaluateLeaveStatus(record, today) {
+  const from = parseDateString(record.fromDate);
+  const to = parseDateString(record.toDate);
+
+  // Mark Completed once current date reaches or passes end date
+  if (to) {
+    const endOfDay = new Date(to);
+    endOfDay.setHours(23, 59, 59, 999);
+    if (today > endOfDay) {
+      return 'Completed';
+    }
+  }
+
+  if (from && to) {
+    const startOfDay = new Date(from);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(to);
+    endOfDay.setHours(23, 59, 59, 999);
+    if (today >= startOfDay && today <= endOfDay) {
+      return 'Ongoing';
+    }
+    if (today < startOfDay) {
+      return 'Not started';
+    }
+  }
+
+  return record.maStatus || 'Not started';
+}
+
+function processLeaves(rawLeaves) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const evaluated = rawLeaves.map(item => ({
+    ...item,
+    maStatus: evaluateLeaveStatus(item, today)
+  }));
+
+  // Sort date-wise chronologically by fromDate
+  return evaluated.sort((a, b) => {
+    const dateA = parseDateString(a.fromDate);
+    const dateB = parseDateString(b.fromDate);
+    if (dateA && dateB) return dateA - dateB;
+    if (dateA) return -1;
+    if (dateB) return 1;
+    return (a.idName || '').localeCompare(b.idName || '');
+  });
+}
+
 export default function MALeaveTracker() {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +126,7 @@ export default function MALeaveTracker() {
     setLoading(true);
     try {
       const data = await fetchMALeaves();
-      setLeaves(data);
+      setLeaves(processLeaves(data));
     } catch (err) {
       console.error('Failed to load MA leaves:', err);
     } finally {
@@ -100,10 +174,10 @@ export default function MALeaveTracker() {
     try {
       if (editingRecord) {
         const updated = await updateMALeave(editingRecord.id, formData);
-        setLeaves(prev => prev.map(item => item.id === editingRecord.id ? { ...item, ...updated } : item));
+        setLeaves(prev => processLeaves(prev.map(item => item.id === editingRecord.id ? { ...item, ...updated } : item)));
       } else {
         const created = await addMALeave(formData);
-        setLeaves(prev => [created, ...prev]);
+        setLeaves(prev => processLeaves([created, ...prev]));
       }
       setIsModalOpen(false);
       // Trigger event for layout to refresh active notification banner
@@ -133,7 +207,7 @@ export default function MALeaveTracker() {
   const handleSaveInlineEdit = async (id) => {
     try {
       const updated = await updateMALeave(id, inlineData);
-      setLeaves(prev => prev.map(item => item.id === id ? { ...item, ...updated } : item));
+      setLeaves(prev => processLeaves(prev.map(item => item.id === id ? { ...item, ...updated } : item)));
       setInlineEditingId(null);
       window.dispatchEvent(new Event('ma-leaves-updated'));
     } catch (err) {
@@ -150,7 +224,7 @@ export default function MALeaveTracker() {
     try {
       const updatedData = { ...record, maStatus: newStatus };
       await updateMALeave(record.id, updatedData);
-      setLeaves(prev => prev.map(item => item.id === record.id ? updatedData : item));
+      setLeaves(prev => processLeaves(prev.map(item => item.id === record.id ? updatedData : item)));
       window.dispatchEvent(new Event('ma-leaves-updated'));
     } catch (err) {
       alert('Failed to update status: ' + err.message);
@@ -200,11 +274,11 @@ export default function MALeaveTracker() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Completed':
-        return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1 w-fit"><CheckCircle2 className="w-3.5 h-3.5" /> Completed</span>;
+        return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 flex items-center gap-1 w-fit"><CheckCircle2 className="w-3.5 h-3.5" /> Completed</span>;
       case 'Ongoing':
-        return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1 w-fit animate-pulse"><Clock className="w-3.5 h-3.5" /> Ongoing</span>;
+        return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 flex items-center gap-1 w-fit animate-pulse"><Clock className="w-3.5 h-3.5" /> Ongoing</span>;
       default:
-        return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-300 flex items-center gap-1 w-fit"><AlertCircle className="w-3.5 h-3.5" /> Not started</span>;
+        return <span className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 flex items-center gap-1 w-fit"><AlertCircle className="w-3.5 h-3.5" /> Not started</span>;
     }
   };
 
@@ -249,62 +323,62 @@ export default function MALeaveTracker() {
 
       {/* Stats Summary Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Records</p>
-            <p className="text-2xl font-extrabold text-slate-800 mt-1">{totalCount}</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Records</p>
+            <p className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 mt-1">{totalCount}</p>
           </div>
-          <div className="p-3 bg-slate-100 rounded-xl text-slate-600">
+          <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-300">
             <Users className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Completed</p>
-            <p className="text-2xl font-extrabold text-emerald-600 mt-1">{completedCount}</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed</p>
+            <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{completedCount}</p>
           </div>
-          <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm flex items-center justify-between bg-amber-50/20">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-amber-200 dark:border-amber-900/50 shadow-sm flex items-center justify-between bg-amber-50/20 dark:bg-amber-950/10">
           <div>
-            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Ongoing / Active</p>
-            <p className="text-2xl font-extrabold text-amber-600 mt-1">{ongoingCount}</p>
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Ongoing / Active</p>
+            <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{ongoingCount}</p>
           </div>
-          <div className="p-3 bg-amber-100 rounded-xl text-amber-700">
+          <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-xl text-amber-700 dark:text-amber-300">
             <Clock className="w-6 h-6 animate-spin-slow" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Not Started</p>
-            <p className="text-2xl font-extrabold text-slate-600 mt-1">{notStartedCount}</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Not Started</p>
+            <p className="text-2xl font-extrabold text-slate-600 dark:text-slate-300 mt-1">{notStartedCount}</p>
           </div>
-          <div className="p-3 bg-slate-100 rounded-xl text-slate-500">
+          <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400">
             <Calendar className="w-6 h-6" />
           </div>
         </div>
       </div>
 
       {/* Control Bar: Search & Filter Tabs */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         
         {/* Search */}
         <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input 
             type="text"
             placeholder="Search by SEO ID, Name, or Mapping ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -324,7 +398,7 @@ export default function MALeaveTracker() {
               className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                 selectedStatus === tab.id
                   ? 'bg-purple-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               {tab.label}
@@ -334,7 +408,7 @@ export default function MALeaveTracker() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-slate-500 space-y-3">
             <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -361,20 +435,20 @@ export default function MALeaveTracker() {
                   <th className="py-3.5 px-4 text-right rounded-tr-xl">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm font-medium text-slate-700 dark:text-slate-200">
                 {filteredLeaves.map((record, index) => {
                   const isInlineEditing = inlineEditingId === record.id;
-                  const isHighlighted = record.seoId === 'KA10005' || record.maStatus === 'Ongoing';
+                  const isHighlighted = record.maStatus === 'Ongoing';
 
                   if (isInlineEditing) {
                     return (
-                      <tr key={record.id} className="bg-purple-50/50">
+                      <tr key={record.id} className="bg-purple-50/50 dark:bg-purple-950/30">
                         <td className="p-3">
                           <input 
                             type="text" 
                             value={inlineData.seoId || ''} 
                             onChange={(e) => setInlineData({ ...inlineData, seoId: e.target.value })}
-                            className="w-full px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
+                            className="w-full px-2 py-1 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 text-slate-800 dark:text-slate-100 rounded text-xs focus:outline-none"
                           />
                         </td>
                         <td className="p-3">
@@ -382,7 +456,7 @@ export default function MALeaveTracker() {
                             type="text" 
                             value={inlineData.idName || ''} 
                             onChange={(e) => setInlineData({ ...inlineData, idName: e.target.value })}
-                            className="w-full px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
+                            className="w-full px-2 py-1 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 text-slate-800 dark:text-slate-100 rounded text-xs focus:outline-none"
                           />
                         </td>
                         <td className="p-3">
@@ -390,7 +464,7 @@ export default function MALeaveTracker() {
                             type="text" 
                             value={inlineData.mappingIds || ''} 
                             onChange={(e) => setInlineData({ ...inlineData, mappingIds: e.target.value })}
-                            className="w-full px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
+                            className="w-full px-2 py-1 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 text-slate-800 dark:text-slate-100 rounded text-xs focus:outline-none"
                           />
                         </td>
                         <td className="p-3">
@@ -399,7 +473,7 @@ export default function MALeaveTracker() {
                             placeholder="MM-DD-YYYY"
                             value={inlineData.fromDate || ''} 
                             onChange={(e) => setInlineData({ ...inlineData, fromDate: e.target.value })}
-                            className="w-full px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
+                            className="w-full px-2 py-1 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 text-slate-800 dark:text-slate-100 rounded text-xs focus:outline-none"
                           />
                         </td>
                         <td className="p-3">
@@ -408,7 +482,7 @@ export default function MALeaveTracker() {
                             placeholder="MM-DD-YYYY"
                             value={inlineData.toDate || ''} 
                             onChange={(e) => setInlineData({ ...inlineData, toDate: e.target.value })}
-                            className="w-full px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
+                            className="w-full px-2 py-1 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 text-slate-800 dark:text-slate-100 rounded text-xs focus:outline-none"
                           />
                         </td>
                         <td className="p-3">
@@ -416,14 +490,14 @@ export default function MALeaveTracker() {
                             type="text" 
                             value={inlineData.applied || ''} 
                             onChange={(e) => setInlineData({ ...inlineData, applied: e.target.value })}
-                            className="w-full px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
+                            className="w-full px-2 py-1 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 text-slate-800 dark:text-slate-100 rounded text-xs focus:outline-none"
                           />
                         </td>
                         <td className="p-3">
                           <select 
                             value={inlineData.maStatus || 'Not started'} 
                             onChange={(e) => setInlineData({ ...inlineData, maStatus: e.target.value })}
-                            className="px-2 py-1 bg-white border border-purple-300 rounded text-xs focus:outline-none"
+                            className="px-2 py-1 bg-white dark:bg-slate-800 border border-purple-300 dark:border-purple-700 text-slate-800 dark:text-slate-100 rounded text-xs focus:outline-none"
                           >
                             <option value="Completed">Completed</option>
                             <option value="Ongoing">Ongoing</option>
@@ -441,7 +515,7 @@ export default function MALeaveTracker() {
                             </button>
                             <button 
                               onClick={handleCancelInlineEdit}
-                              className="p-1.5 bg-slate-200 text-slate-600 rounded hover:bg-slate-300"
+                              className="p-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded hover:bg-slate-300 dark:hover:bg-slate-600"
                               title="Cancel"
                             >
                               <X className="w-4 h-4" />
@@ -455,30 +529,34 @@ export default function MALeaveTracker() {
                   return (
                     <tr 
                       key={record.id} 
-                      className={`hover:bg-purple-50/40 transition-colors ${
-                        isHighlighted ? 'bg-amber-50/30' : index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'
+                      className={`hover:bg-purple-50/40 dark:hover:bg-purple-900/20 transition-colors ${
+                        isHighlighted 
+                          ? 'bg-amber-50/30 dark:bg-amber-950/20' 
+                          : index % 2 === 0 
+                            ? 'bg-white dark:bg-slate-900' 
+                            : 'bg-slate-50/50 dark:bg-slate-800/40'
                       }`}
                     >
-                      <td className="py-3.5 px-4 font-bold text-purple-950 font-mono text-xs">
+                      <td className="py-3.5 px-4 font-bold text-purple-950 dark:text-purple-300 font-mono text-xs">
                         {record.seoId}
                       </td>
-                      <td className="py-3.5 px-4 font-semibold text-slate-800">
+                      <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-100">
                         {record.idName}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-600">
-                        <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
+                      <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                        <span className="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700">
                           {record.mappingIds || '-'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-xs text-slate-600">
+                      <td className="py-3.5 px-4 font-mono text-xs text-slate-600 dark:text-slate-400">
                         {record.fromDate || '-'}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-xs text-slate-600">
+                      <td className="py-3.5 px-4 font-mono text-xs text-slate-600 dark:text-slate-400">
                         {record.toDate || '-'}
                       </td>
                       <td className="py-3.5 px-4 text-xs font-semibold">
                         <span className={`px-2 py-0.5 rounded text-xs ${
-                          record.applied === 'Done' ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-500'
+                          record.applied === 'Done' ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                         }`}>
                           {record.applied || '-'}
                         </span>
@@ -489,12 +567,12 @@ export default function MALeaveTracker() {
                           <select 
                             value={record.maStatus || 'Not started'} 
                             onChange={(e) => handleQuickStatusChange(record, e.target.value)}
-                            className="text-xs bg-transparent text-slate-400 hover:text-slate-700 border-none focus:outline-none cursor-pointer"
+                            className="text-xs bg-transparent text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 border-none focus:outline-none cursor-pointer"
                             title="Quick Status Selector"
                           >
-                            <option value="Completed">Completed</option>
-                            <option value="Ongoing">Ongoing</option>
-                            <option value="Not started">Not started</option>
+                            <option value="Completed" className="dark:bg-slate-900">Completed</option>
+                            <option value="Ongoing" className="dark:bg-slate-900">Ongoing</option>
+                            <option value="Not started" className="dark:bg-slate-900">Not started</option>
                           </select>
                         </div>
                       </td>
@@ -502,7 +580,7 @@ export default function MALeaveTracker() {
                         <div className="flex items-center justify-end space-x-1.5">
                           <button
                             onClick={() => handleSetGlobalNotification(record)}
-                            className="p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-100 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/30 rounded-lg transition-colors cursor-pointer"
                             title="Set as Global Top Notification Banner"
                           >
                             <Bell className="w-4 h-4" />
@@ -510,7 +588,7 @@ export default function MALeaveTracker() {
 
                           <button
                             onClick={() => handleStartInlineEdit(record)}
-                            className="p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-100 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-colors cursor-pointer"
                             title="Quick Inline Edit"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -518,7 +596,7 @@ export default function MALeaveTracker() {
 
                           <button
                             onClick={() => handleOpenEditModal(record)}
-                            className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors cursor-pointer"
                             title="Open Edit Dialog"
                           >
                             <Sparkles className="w-4 h-4" />
@@ -526,7 +604,7 @@ export default function MALeaveTracker() {
 
                           <button
                             onClick={() => handleDelete(record.id, record.idName)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -544,14 +622,14 @@ export default function MALeaveTracker() {
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-purple-600" />
+        <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 <span>{editingRecord ? 'Edit MA Leave Record' : 'Add New MA Leave'}</span>
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -559,72 +637,72 @@ export default function MALeaveTracker() {
             <form onSubmit={handleSaveModal} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">SEO ID *</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">SEO ID *</label>
                   <input 
                     type="text"
                     required
                     placeholder="e.g. KA10005"
                     value={formData.seoId}
                     onChange={(e) => setFormData({ ...formData, seoId: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">ID Name *</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">ID Name *</label>
                   <input 
                     type="text"
                     required
                     placeholder="e.g. Ankit"
                     value={formData.idName}
                     onChange={(e) => setFormData({ ...formData, idName: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Mapping IDs</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Mapping IDs</label>
                 <input 
                   type="text"
                   placeholder="e.g. Moenage, BAU, Project"
                   value={formData.mappingIds}
                   onChange={(e) => setFormData({ ...formData, mappingIds: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">From (MM/DD/YYYY)</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">From (MM/DD/YYYY)</label>
                   <input 
                     type="text"
                     placeholder="06-08-2026"
                     value={formData.fromDate}
                     onChange={(e) => setFormData({ ...formData, fromDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">To (MM/DD/YYYY)</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">To (MM/DD/YYYY)</label>
                   <input 
                     type="text"
                     placeholder="06-12-2026"
                     value={formData.toDate}
                     onChange={(e) => setFormData({ ...formData, toDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Applied</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Applied</label>
                   <select 
                     value={formData.applied}
                     onChange={(e) => setFormData({ ...formData, applied: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="Done">Done</option>
                     <option value="Pending">Pending</option>
@@ -633,11 +711,11 @@ export default function MALeaveTracker() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">MA Status</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">MA Status</label>
                   <select 
                     value={formData.maStatus}
                     onChange={(e) => setFormData({ ...formData, maStatus: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="Not started">Not started</option>
                     <option value="Ongoing">Ongoing</option>
@@ -646,11 +724,11 @@ export default function MALeaveTracker() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
                 >
                   Cancel
                 </button>
