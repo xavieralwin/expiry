@@ -230,56 +230,56 @@ export default function SOEAccessMatrix() {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Resources</p>
-            <p className="text-2xl font-extrabold text-slate-800 mt-1">{totalResources}</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Resources</p>
+            <p className="text-2xl font-extrabold text-slate-800 dark:text-slate-100 mt-1">{totalResources}</p>
           </div>
-          <div className="p-3 bg-slate-100 rounded-xl text-slate-600">
+          <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-300">
             <Users className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm flex items-center justify-between bg-amber-50/20">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-amber-200 dark:border-amber-900/60 shadow-sm flex items-center justify-between bg-amber-50/20 dark:bg-amber-950/20">
           <div>
-            <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">AEM Access</p>
-            <p className="text-2xl font-extrabold text-amber-600 mt-1">{aemAccessCount}</p>
+            <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider">AEM Access</p>
+            <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-300 mt-1">{aemAccessCount}</p>
           </div>
-          <div className="p-3 bg-amber-100 rounded-xl text-amber-700">
+          <div className="p-3 bg-amber-100 dark:bg-amber-900/50 rounded-xl text-amber-700 dark:text-amber-300">
             <Sparkles className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between bg-emerald-50/20">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 shadow-sm flex items-center justify-between bg-emerald-50/20 dark:bg-emerald-950/20">
           <div>
-            <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Drupal Access</p>
-            <p className="text-2xl font-extrabold text-emerald-600 mt-1">{drupalAccessCount}</p>
+            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Drupal Access</p>
+            <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-300 mt-1">{drupalAccessCount}</p>
           </div>
-          <div className="p-3 bg-emerald-100 rounded-xl text-emerald-700">
+          <div className="p-3 bg-emerald-100 dark:bg-emerald-900/50 rounded-xl text-emerald-700 dark:text-emerald-300">
             <Server className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-purple-200 shadow-sm flex items-center justify-between bg-purple-50/20">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-purple-200 dark:border-purple-900/60 shadow-sm flex items-center justify-between bg-purple-50/20 dark:bg-purple-950/20">
           <div>
-            <p className="text-xs font-semibold text-purple-700 uppercase tracking-wider">Moengage Access</p>
-            <p className="text-2xl font-extrabold text-purple-600 mt-1">{moengageAccessCount}</p>
+            <p className="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Moengage Access</p>
+            <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-300 mt-1">{moengageAccessCount}</p>
           </div>
-          <div className="p-3 bg-purple-100 rounded-xl text-purple-700">
+          <div className="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-xl text-purple-700 dark:text-purple-300">
             <Layers className="w-6 h-6" />
           </div>
         </div>
       </div>
 
       {/* Control Bar: View Switcher, Search, Filter Pills */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         
         {/* View Switcher Tabs */}
-        <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 w-full md:w-auto">
+        <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 w-full md:w-auto">
           <button 
             onClick={() => setViewMode('person')}
             className={`flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              viewMode === 'person' ? 'bg-white text-indigo-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              viewMode === 'person' ? 'bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-300 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <User className="w-4 h-4" />
@@ -289,7 +289,7 @@ export default function SOEAccessMatrix() {
           <button 
             onClick={() => setViewMode('system')}
             className={`flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              viewMode === 'system' ? 'bg-white text-indigo-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              viewMode === 'system' ? 'bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-300 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             }`}
           >
             <Server className="w-4 h-4" />
@@ -299,16 +299,16 @@ export default function SOEAccessMatrix() {
 
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input 
             type="text"
             placeholder="Search by SOE ID, Name, or Email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -330,7 +330,7 @@ export default function SOEAccessMatrix() {
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 selectedFilter === filter.id
                   ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               {filter.label}
@@ -341,15 +341,15 @@ export default function SOEAccessMatrix() {
 
       {/* Main View Area */}
       {loading ? (
-        <div className="p-12 text-center text-slate-500 space-y-3 bg-white rounded-2xl border border-slate-200">
+        <div className="p-12 text-center text-slate-500 dark:text-slate-400 space-y-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
           <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-sm font-medium">Loading SOE Access records...</p>
         </div>
       ) : filteredResources.length === 0 ? (
-        <div className="p-12 text-center text-slate-500 space-y-3 bg-white rounded-2xl border border-slate-200">
-          <ShieldCheck className="w-10 h-10 text-slate-300 mx-auto" />
-          <p className="text-base font-semibold text-slate-700">No resources found</p>
-          <p className="text-xs text-slate-400">Try adjusting search query or platform filters.</p>
+        <div className="p-12 text-center text-slate-500 dark:text-slate-400 space-y-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <ShieldCheck className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+          <p className="text-base font-semibold text-slate-700 dark:text-slate-200">No resources found</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">Try adjusting search query or platform filters.</p>
         </div>
       ) : viewMode === 'person' ? (
         
@@ -362,7 +362,7 @@ export default function SOEAccessMatrix() {
             return (
               <div 
                 key={resource.id} 
-                className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4 group"
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4 group"
               >
                 <div className="space-y-3">
                   
@@ -373,10 +373,10 @@ export default function SOEAccessMatrix() {
                         {resource.name ? resource.name.substring(0, 2).toUpperCase() : 'SO'}
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-800 text-base group-hover:text-indigo-600 transition-colors">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                           {resource.name}
                         </h3>
-                        <p className="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded w-fit mt-0.5 border border-indigo-100">
+                        <p className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded w-fit mt-0.5 border border-indigo-100 dark:border-indigo-800/40">
                           {resource.soeId}
                         </p>
                       </div>
@@ -385,14 +385,14 @@ export default function SOEAccessMatrix() {
                     <div className="flex items-center space-x-1">
                       <button
                         onClick={() => handleOpenEditModal(resource)}
-                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors cursor-pointer"
                         title="Edit Permissions"
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(resource.id, resource.name)}
-                        className="p-1.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -400,17 +400,17 @@ export default function SOEAccessMatrix() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-500 font-medium truncate">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
                     {resource.email || 'No email associated'}
                   </p>
 
                   {/* Coverage Progress Bar */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-slate-500">Access Coverage</span>
-                      <span className="text-indigo-600 font-bold">{activeFlags.length} / {PLATFORMS.length}</span>
+                      <span className="text-slate-500 dark:text-slate-400">Access Coverage</span>
+                      <span className="text-indigo-600 dark:text-indigo-400 font-bold">{activeFlags.length} / {PLATFORMS.length}</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                       <div 
                         className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full transition-all duration-500"
                         style={{ width: `${coveragePercent}%` }}
@@ -419,10 +419,10 @@ export default function SOEAccessMatrix() {
                   </div>
 
                   {/* Active Platform Badges */}
-                  <div className="pt-2 border-t border-slate-100 space-y-2">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Platforms</p>
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                    <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Active Platforms</p>
                     {activeFlags.length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">No platform access granted</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 italic">No platform access granted</p>
                     ) : (
                       <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
                         {activeFlags.map(p => (
@@ -440,7 +440,7 @@ export default function SOEAccessMatrix() {
 
                 <button
                   onClick={() => handleOpenEditModal(resource)}
-                  className="w-full py-2 bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 text-xs font-bold rounded-xl transition-all border border-slate-200 hover:border-indigo-200 flex items-center justify-center space-x-1.5 cursor-pointer mt-4"
+                  className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-slate-600 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-300 text-xs font-bold rounded-xl transition-all border border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800 flex items-center justify-center space-x-1.5 cursor-pointer mt-4"
                 >
                   <Key className="w-3.5 h-3.5" />
                   <span>Manage Access Rights</span>
@@ -475,10 +475,10 @@ export default function SOEAccessMatrix() {
 
             if (visiblePlatforms.length === 0) {
               return (
-                <div className="p-12 text-center text-slate-500 space-y-3 bg-white rounded-2xl border border-slate-200">
-                  <Server className="w-10 h-10 text-slate-300 mx-auto" />
-                  <p className="text-base font-semibold text-slate-700">No platform access matches your filter</p>
-                  <p className="text-xs text-slate-400">Try selecting a different filter pill or clearing your search.</p>
+                <div className="p-12 text-center text-slate-500 dark:text-slate-400 space-y-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <Server className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+                  <p className="text-base font-semibold text-slate-700 dark:text-slate-200">No platform access matches your filter</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Try selecting a different filter pill or clearing your search.</p>
                 </div>
               );
             }
@@ -487,44 +487,44 @@ export default function SOEAccessMatrix() {
               const membersWithAccess = filteredResources.filter(r => r.accessFlags?.[platform.key]);
 
               return (
-                <div key={platform.key} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div key={platform.key} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div className="flex items-center space-x-3">
                       <span className={`px-3 py-1 rounded-lg text-xs font-bold shadow-xs ${platform.color}`}>
                         {platform.label}
                       </span>
-                      <span className="text-xs font-bold text-slate-500">
-                        Category: <span className="text-slate-800">{platform.category}</span>
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                        Category: <span className="text-slate-800 dark:text-slate-200">{platform.category}</span>
                       </span>
                     </div>
                     
-                    <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full border border-slate-200">
+                    <span className="text-xs font-bold px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full border border-slate-200 dark:border-slate-700">
                       {membersWithAccess.length} Authorized Members
                     </span>
                   </div>
 
                   {membersWithAccess.length === 0 ? (
-                    <p className="text-xs text-slate-400 italic py-2">No team members currently hold access to this environment.</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 italic py-2">No team members currently hold access to this environment.</p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
                       {membersWithAccess.map(member => (
                         <div 
                           key={member.id} 
-                          className="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-indigo-50/50 rounded-xl border border-slate-200/80 transition-colors"
+                          className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 rounded-xl border border-slate-200/80 dark:border-slate-700/80 transition-colors"
                         >
                           <div className="flex items-center space-x-2.5">
                             <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">
                               {member.name.substring(0, 2).toUpperCase()}
                             </div>
                             <div>
-                              <p className="text-xs font-bold text-slate-800">{member.name}</p>
-                              <p className="text-[10px] font-mono text-indigo-600 font-bold">{member.soeId}</p>
+                              <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{member.name}</p>
+                              <p className="text-[10px] font-mono text-indigo-600 dark:text-indigo-400 font-bold">{member.soeId}</p>
                             </div>
                           </div>
 
                           <button 
                             onClick={() => handleToggleAccessFlag(member, platform.key)}
-                            className="text-[11px] font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
+                            className="text-[11px] font-semibold text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 px-2 py-1 rounded transition-colors cursor-pointer"
                             title="Revoke Access"
                           >
                             Revoke
@@ -543,15 +543,15 @@ export default function SOEAccessMatrix() {
       {/* Permission Switch Manager Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-800">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-indigo-600" />
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 <span>{editingResource ? `Manage Access Rights: ${formData.name || 'Resource'}` : 'Add New Resource'}</span>
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -561,48 +561,48 @@ export default function SOEAccessMatrix() {
               {/* Profile Inputs */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Resource Name *</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Resource Name *</label>
                   <input 
                     type="text"
                     required
                     placeholder="e.g. Alwin"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">SOE ID *</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">SOE ID *</label>
                   <input 
                     type="text"
                     required
                     placeholder="e.g. AJ26015"
                     value={formData.soeId}
                     onChange={(e) => setFormData({ ...formData, soeId: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Official Email</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Official Email</label>
                   <input 
                     type="email"
                     placeholder="name@citi.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
               {/* Toggable Platform Access Switches */}
-              <div className="space-y-3 pt-3 border-t border-slate-100">
+              <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-extrabold uppercase text-slate-500 tracking-wider">
+                  <h4 className="text-xs font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider">
                     Platform & Environment Access Toggles
                   </h4>
-                  <span className="text-xs text-indigo-600 font-semibold">
+                  <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
                     {PLATFORMS.filter(p => formData.accessFlags?.[p.key]).length} Granted
                   </span>
                 </div>
@@ -624,21 +624,21 @@ export default function SOEAccessMatrix() {
                           });
                         }}
                         className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                          isGranted ? 'bg-indigo-50/70 border-indigo-300' : 'bg-slate-50/60 border-slate-200 hover:border-slate-300'
+                          isGranted ? 'bg-indigo-50/70 dark:bg-indigo-950/60 border-indigo-300 dark:border-indigo-700' : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                         }`}
                       >
                         <div className="flex items-center space-x-2">
-                          <span className={`w-2.5 h-2.5 rounded-full ${isGranted ? 'bg-indigo-600 animate-pulse' : 'bg-slate-300'}`}></span>
-                          <span className={`text-xs font-bold ${isGranted ? 'text-indigo-950' : 'text-slate-600'}`}>
+                          <span className={`w-2.5 h-2.5 rounded-full ${isGranted ? 'bg-indigo-600 dark:bg-indigo-400 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`}></span>
+                          <span className={`text-xs font-bold ${isGranted ? 'text-indigo-950 dark:text-indigo-200' : 'text-slate-600 dark:text-slate-300'}`}>
                             {platform.label}
                           </span>
                         </div>
 
                         {/* Modern Switch UI */}
                         <div className={`w-9 h-5 rounded-full transition-colors relative flex items-center p-0.5 ${
-                          isGranted ? 'bg-indigo-600' : 'bg-slate-300'
+                          isGranted ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'
                         }`}>
-                          <div className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform ${
+                          <div className={`w-4 h-4 rounded-full bg-white dark:bg-slate-100 shadow-md transform transition-transform ${
                             isGranted ? 'translate-x-4' : 'translate-x-0'
                           }`}></div>
                         </div>
@@ -649,11 +649,11 @@ export default function SOEAccessMatrix() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                  className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>

@@ -86,11 +86,11 @@ export default function OverviewDashboard() {
   return (
     <div className="p-8 pb-20">
       <header className="mb-8 block">
-        <h2 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-           <LayoutDashboard className="w-8 h-8 text-purple-600" />
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+           <LayoutDashboard className="w-8 h-8 text-purple-600 dark:text-purple-400" />
            Overview Dashboard
         </h2>
-        <p className="text-slate-500 mt-1">High-level insights into your URL ecosystem.</p>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">High-level insights into your URL ecosystem.</p>
       </header>
 
       {/* Primary KPI Cards matching requested colors */}
@@ -152,39 +152,39 @@ export default function OverviewDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Side: Chart Section */}
-        <div className="col-span-1 lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-          <h3 className="text-xl font-bold text-slate-800 mb-6">Expiry Forecast</h3>
+        <div className="col-span-1 lg:col-span-2 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6">Expiry Forecast</h3>
           <div className="h-[300px] w-full">
             {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" tick={{fill: '#64748b', fontSize: 12}} axisLine={false} tickLine={false} />
-                <YAxis tick={{fill: '#64748b', fontSize: 12}} axisLine={false} tickLine={false} />
+                <XAxis dataKey="name" tick={{fill: '#94a3b8', fontSize: 12}} axisLine={false} tickLine={false} />
+                <YAxis tick={{fill: '#94a3b8', fontSize: 12}} axisLine={false} tickLine={false} />
                 <Tooltip 
-                  cursor={{fill: '#f8fafc'}}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  cursor={{fill: 'rgba(241, 245, 249, 0.05)'}}
+                  contentStyle={{ borderRadius: '12px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#f8fafc', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.3)' }}
                 />
                 <Bar dataKey="Expirations" fill="#a78bfa" radius={[6, 6, 6, 6]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
             ) : (
-                <div className="h-full flex items-center justify-center text-slate-400">No chart data near this period.</div>
+                <div className="h-full flex items-center justify-center text-slate-400 dark:text-slate-500">No chart data near this period.</div>
             )}
           </div>
         </div>
 
-        {/* Right Side: Environment List (Soft Blue Background reference) */}
-        <div className="col-span-1 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-          <h3 className="text-xl font-bold text-slate-800 mb-6">Environment Details</h3>
+        {/* Right Side: Environment List */}
+        <div className="col-span-1 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6">Environment Details</h3>
           
           <div className="space-y-4">
             {Object.entries(envStats).filter(([_, val]) => val > 0).map(([env, val]) => (
-              <div key={env} className="bg-[#bfdbfe] rounded-2xl p-4 flex justify-between items-center bg-opacity-70">
+              <div key={env} className="bg-[#bfdbfe] dark:bg-blue-950/60 rounded-2xl p-4 flex justify-between items-center bg-opacity-70 dark:bg-opacity-100 border border-transparent dark:border-blue-800/40">
                 <div className="flex items-center gap-3">
-                   <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                   <span className="font-semibold text-blue-900">{env}</span>
+                   <div className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400"></div>
+                   <span className="font-semibold text-blue-900 dark:text-blue-200">{env}</span>
                 </div>
-                <div className="bg-white/60 px-3 py-1 rounded-full text-blue-900 font-bold shadow-sm text-sm">
+                <div className="bg-white/60 dark:bg-slate-800/80 px-3 py-1 rounded-full text-blue-900 dark:text-blue-200 font-bold shadow-sm text-sm">
                   {val.toLocaleString()}
                 </div>
               </div>
@@ -192,11 +192,11 @@ export default function OverviewDashboard() {
             
             {/* If there are no domains, show empty state */}
             {Object.values(envStats).every(v => v === 0) && (
-              <div className="text-slate-400 text-center py-6 text-sm">No environments populated.</div>
+              <div className="text-slate-400 dark:text-slate-500 text-center py-6 text-sm">No environments populated.</div>
             )}
             
-            <div className="pt-4 border-t border-slate-100 mt-4">
-               <p className="text-xs text-slate-500 text-center uppercase tracking-widest font-semibold">Distribution Summary</p>
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-4">
+               <p className="text-xs text-slate-500 dark:text-slate-400 text-center uppercase tracking-widest font-semibold">Distribution Summary</p>
             </div>
           </div>
         </div>

@@ -184,23 +184,23 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h2 className="text-xl font-bold text-slate-800">Bulk Import Data</h2>
-          <button type="button" onClick={onClose} disabled={importing} className="text-slate-400 hover:text-slate-700 cursor-pointer disabled:opacity-50">✕</button>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100 dark:border-slate-800">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/60">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Bulk Import Data</h2>
+          <button type="button" onClick={onClose} disabled={importing} className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer disabled:opacity-50">✕</button>
         </div>
         
         <div className="p-8 space-y-6">
           {IS_DB_MIGRATION_ACTIVE && (
-            <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm border border-amber-200 flex items-start gap-2">
+            <div className="bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 p-4 rounded-xl text-sm border border-amber-200 dark:border-amber-900/50 flex items-start gap-2">
               <span className="font-bold">⚠️ Notice:</span>
               <span>Database migration is currently in progress. Bulk importing is disabled.</span>
             </div>
           )}
-          {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm border border-red-200">{error}</div>}
+          {error && <div className="bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 p-4 rounded-xl text-sm border border-red-200 dark:border-red-900/50">{error}</div>}
           
-          <div className={`border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 transition-colors ${IS_DB_MIGRATION_ACTIVE ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100 cursor-pointer'}`} onClick={() => !importing && !IS_DB_MIGRATION_ACTIVE && fileInputRef.current?.click()}>
+          <div className={`border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-8 text-center bg-slate-50 dark:bg-slate-800/40 transition-colors ${IS_DB_MIGRATION_ACTIVE ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100 dark:hover:bg-slate-800/80 cursor-pointer'}`} onClick={() => !importing && !IS_DB_MIGRATION_ACTIVE && fileInputRef.current?.click()}>
             <input 
               type="file" 
               accept=".csv, .xlsx, .xls" 
@@ -210,34 +210,34 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
               disabled={importing}
             />
             {file ? (
-              <p className="text-slate-800 font-medium">Selected: <span className="text-purple-600">{file.name}</span></p>
+              <p className="text-slate-800 dark:text-slate-100 font-medium">Selected: <span className="text-purple-600 dark:text-purple-400">{file.name}</span></p>
             ) : (
               <div>
-                <p className="text-slate-600 font-medium mb-1">Click to select an Excel or CSV file</p>
-                <p className="text-slate-400 text-sm">We will try to auto-map columns like URL, Expiry Date, Subject, etc.</p>
+                <p className="text-slate-600 dark:text-slate-300 font-medium mb-1">Click to select an Excel or CSV file</p>
+                <p className="text-slate-400 dark:text-slate-500 text-sm">We will try to auto-map columns like URL, Expiry Date, Subject, etc.</p>
               </div>
             )}
           </div>
 
           {importing && (
-            <div className="space-y-2 bg-purple-50 p-4 rounded-xl border border-purple-100">
-              <div className="flex justify-between text-sm font-semibold text-purple-900">
+            <div className="space-y-2 bg-purple-50 dark:bg-purple-950/40 p-4 rounded-xl border border-purple-100 dark:border-purple-900/50">
+              <div className="flex justify-between text-sm font-semibold text-purple-900 dark:text-purple-200">
                 <span>{typeof progress.current === 'string' ? progress.current : `Progress: ${progress.current} / ${progress.total}`}</span>
                 <span>{typeof progress.current === 'string' ? '' : `${Math.round((progress.current / (progress.total || 1)) * 100)}%`}</span>
               </div>
-              <div className="w-full bg-purple-200 rounded-full h-2.5">
+              <div className="w-full bg-purple-200 dark:bg-purple-900/60 rounded-full h-2.5">
                 <div className="bg-[#a78bfa] h-2.5 rounded-full" style={{ width: typeof progress.current === 'string' ? '100%' : `${Math.round((progress.current / (progress.total || 1)) * 100)}%` }}></div>
               </div>
-              <p className="text-xs text-purple-700 pt-1">
+              <p className="text-xs text-purple-700 dark:text-purple-300 pt-1">
                 ✅ Imported: {progress.success} | ❌ Skipped (duplicates/errors): {progress.failed}
               </p>
             </div>
           )}
 
           {!importing && importErrors.length > 0 && (
-            <div className="bg-red-50 p-4 rounded-xl border border-red-200 mt-4 max-h-48 overflow-y-auto">
-              <h4 className="font-bold text-red-800 text-sm mb-2">Some rows failed to import:</h4>
-              <ul className="text-xs text-red-700 space-y-1 list-disc pl-4 text-left">
+            <div className="bg-red-50 dark:bg-red-950/40 p-4 rounded-xl border border-red-200 dark:border-red-900/50 mt-4 max-h-48 overflow-y-auto">
+              <h4 className="font-bold text-red-800 dark:text-red-300 text-sm mb-2">Some rows failed to import:</h4>
+              <ul className="text-xs text-red-700 dark:text-red-300 space-y-1 list-disc pl-4 text-left">
                 {importErrors.map((err, i) => (
                   <li key={i}>{err}</li>
                 ))}
@@ -246,7 +246,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           )}
           
           <div className="flex justify-end space-x-3 pt-2">
-            <button type="button" onClick={() => { trackButtonClick('ImportForm - Close'); onClose(); }} disabled={importing} className="px-5 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium cursor-pointer transition-colors disabled:opacity-50">Close</button>
+            <button type="button" onClick={() => { trackButtonClick('ImportForm - Close'); onClose(); }} disabled={importing} className="px-5 py-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-medium cursor-pointer transition-colors disabled:opacity-50">Close</button>
             <button 
               type="button" 
               onClick={() => { trackButtonClick('ImportForm - Start Import'); handleImport(); }}

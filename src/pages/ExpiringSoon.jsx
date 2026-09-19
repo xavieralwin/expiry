@@ -95,12 +95,12 @@ export default function ExpiringSoon() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8">
-      <header className="mb-6 md:mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center bg-pink-50 border border-pink-100 p-4 md:p-6 rounded-2xl shadow-sm gap-4">
+      <header className="mb-6 md:mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center bg-pink-50 dark:bg-pink-950/40 border border-pink-100 dark:border-pink-900/50 p-4 md:p-6 rounded-2xl shadow-sm gap-4">
         <div className="flex-shrink-0 min-w-max">
-          <h2 className="text-2xl md:text-3xl font-bold text-pink-900 flex items-center gap-2 whitespace-nowrap">
-            <AlertTriangle className="w-6 h-6 md:w-8 md:h-8 text-pink-500" /> Expiring Soon
+          <h2 className="text-2xl md:text-3xl font-bold text-pink-900 dark:text-pink-100 flex items-center gap-2 whitespace-nowrap">
+            <AlertTriangle className="w-6 h-6 md:w-8 md:h-8 text-pink-500 dark:text-pink-400" /> Expiring Soon
           </h2>
-          <p className="text-sm md:text-base text-pink-700/80 mt-1 whitespace-nowrap">URLs that are active and expiring within the next 30 days</p>
+          <p className="text-sm md:text-base text-pink-700/80 dark:text-pink-300/80 mt-1 whitespace-nowrap">URLs that are active and expiring within the next 30 days</p>
         </div>
         <div className="flex flex-col md:flex-row items-stretch md:items-center flex-wrap gap-4 w-full xl:justify-end xl:w-auto">
           <div className="relative w-full md:w-auto">
@@ -109,37 +109,37 @@ export default function ExpiringSoon() {
               placeholder="Search expiring..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none w-full md:w-64 text-sm bg-white"
+              className="pl-10 pr-4 py-2 border border-pink-200 dark:border-pink-900/60 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none w-full md:w-64 text-sm bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-2.5" />
           </div>
           <div className="grid grid-cols-2 md:flex md:flex-row gap-2 md:gap-3 w-full md:w-auto">
             <button 
               onClick={() => { trackButtonClick('ExpiringSoon - Send Alerts'); handleSendAlerts(); }}
               disabled={sendingEmail}
-              className="bg-[#fbcfe8] border-none hover:bg-pink-300 text-pink-950 px-3 md:px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-sm md:text-base col-span-1"
+              className="bg-[#fbcfe8] dark:bg-pink-900/60 border-none hover:bg-pink-300 dark:hover:bg-pink-800 text-pink-950 dark:text-pink-200 px-3 md:px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-sm md:text-base col-span-1"
             >
               <Mail className="w-4 h-4" />
               <span>{sendingEmail ? 'Sending...' : 'Alerts'}</span>
             </button>
             <button 
               onClick={() => { trackButtonClick('ExpiringSoon - Export CSV'); exportToCsv('expiring_records.csv', filteredDisplayRecords); }}
-              className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-3 md:px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base col-span-1"
+              className="bg-[#bfdbfe] dark:bg-blue-900/60 border-none hover:bg-blue-300 dark:hover:bg-blue-800 text-blue-900 dark:text-blue-200 px-3 md:px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base col-span-1"
             >
               <Download className="w-4 h-4" />
               <span>CSV</span>
             </button>
-            <div className="bg-orange-500 text-white px-3 md:px-4 py-2 rounded-lg font-bold shadow shadow-orange-200 col-span-2 md:col-auto flex justify-center items-center text-sm md:text-base">
+            <div className="bg-orange-500 text-white px-3 md:px-4 py-2 rounded-lg font-bold shadow shadow-orange-200 dark:shadow-none col-span-2 md:col-auto flex justify-center items-center text-sm md:text-base">
               {records.length} Action Needed
             </div>
           </div>
         </div>
       </header>
       
-      <div className="bg-white rounded-2xl shadow-sm border border-pink-200 overflow-x-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-pink-200 dark:border-pink-900/50 overflow-x-auto">
         <table className="w-full text-left min-w-[1000px]">
           <thead>
-            <tr className="border-b border-pink-200 bg-pink-50/50 text-slate-500 text-sm">
+            <tr className="border-b border-pink-200 dark:border-pink-900/50 bg-pink-50/50 dark:bg-pink-950/30 text-slate-500 dark:text-slate-400 text-sm">
               <th className="p-4 font-medium">Full & Complete URL</th>
               <th className="p-4 font-medium">Page Type</th>
               <th className="p-4 font-medium min-w-[100px]">Environment</th>
@@ -150,37 +150,37 @@ export default function ExpiringSoon() {
               <th className="p-4 font-medium text-right">Days Left</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
             {loading ? (
-              <tr><td colSpan="8" className="p-8 text-center text-slate-400">Loading records...</td></tr>
+              <tr><td colSpan="8" className="p-8 text-center text-slate-400 dark:text-slate-500">Loading records...</td></tr>
             ) : paginatedRecords.length === 0 ? (
-              <tr><td colSpan="8" className="p-12 text-center text-slate-400">No records found.</td></tr>
+              <tr><td colSpan="8" className="p-12 text-center text-slate-400 dark:text-slate-500">No records found.</td></tr>
             ) : paginatedRecords.map(record => {
               const daysLeft = differenceInDays(new Date(record.expiryDate), new Date());
               const isExpired = daysLeft < 0;
 
               return (
-              <tr key={record.id} className="hover:bg-pink-50/30 transition-colors">
+              <tr key={record.id} className="hover:bg-pink-50/30 dark:hover:bg-pink-950/20 transition-colors">
                 <td className="p-4">
-                  <a href={record.url} target="_blank" rel="noreferrer" className="text-purple-600 hover:text-purple-800 hover:underline flex items-center gap-1 w-48 truncate" title={record.url}>
+                  <a href={record.url} target="_blank" rel="noreferrer" className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 hover:underline flex items-center gap-1 w-48 truncate" title={record.url}>
                     {record.url} <ExternalLink className="w-3 h-3 inline" />
                   </a>
                 </td>
-                <td className="p-4 text-slate-600 font-medium">{record.pageType || '-'}</td>
-                <td className="p-4 text-slate-600 font-medium">{record.environment || 'ICMS'}</td>
+                <td className="p-4 text-slate-600 dark:text-slate-300 font-medium">{record.pageType || '-'}</td>
+                <td className="p-4 text-slate-600 dark:text-slate-300 font-medium">{record.environment || 'ICMS'}</td>
                 <td className="p-4">
                   <div className="flex flex-col gap-1 w-48 truncate">
-                    <span className="text-slate-700 font-medium">{record.ownerSoeid || '-'}</span>
-                    <span className="text-slate-500 text-xs truncate" title={record.ownerEmail}>{record.ownerEmail || '-'}</span>
+                    <span className="text-slate-700 dark:text-slate-200 font-medium">{record.ownerSoeid || '-'}</span>
+                    <span className="text-slate-500 dark:text-slate-400 text-xs truncate" title={record.ownerEmail}>{record.ownerEmail || '-'}</span>
                   </div>
                 </td>
-                <td className="p-4 text-slate-600">{record.ownerName || '-'}</td>
-                <td className="p-4 text-slate-600 font-medium">{record.wmrNo || '-'}</td>
-                <td className="p-4 font-bold text-red-600">
+                <td className="p-4 text-slate-600 dark:text-slate-300">{record.ownerName || '-'}</td>
+                <td className="p-4 text-slate-600 dark:text-slate-300 font-medium">{record.wmrNo || '-'}</td>
+                <td className="p-4 font-bold text-red-600 dark:text-red-400">
                   {format(new Date(record.expiryDate), 'MMM d, yyyy')}
                 </td>
                 <td className="p-4 text-right">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${isExpired ? 'bg-[#fbcfe8] text-pink-950' : 'bg-[#fef08a] text-yellow-950'}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${isExpired ? 'bg-[#fbcfe8] dark:bg-pink-950/80 text-pink-950 dark:text-pink-200 border border-pink-300 dark:border-pink-800' : 'bg-[#fef08a] dark:bg-amber-950/80 text-yellow-950 dark:text-amber-200 border border-yellow-300 dark:border-amber-800'}`}>
                     {isExpired ? 'Expired' : `${daysLeft} Days`}
                   </span>
                 </td>
@@ -191,27 +191,27 @@ export default function ExpiringSoon() {
         </table>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-pink-200 bg-white px-4 py-3 sm:px-6 rounded-b-2xl">
+          <div className="flex items-center justify-between border-t border-pink-200 dark:border-pink-900/50 bg-white dark:bg-slate-900 px-4 py-3 sm:px-6 rounded-b-2xl">
             <div className="flex flex-1 justify-between sm:hidden">
-              <button type="button" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50">Previous</button>
-              <button type="button" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50">Next</button>
+              <button type="button" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="relative inline-flex items-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50">Previous</button>
+              <button type="button" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="relative ml-3 inline-flex items-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50">Next</button>
             </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm text-slate-700">
+                <p className="text-sm text-slate-700 dark:text-slate-300">
                   Showing <span className="font-medium">{startIndex + 1}</span> to <span className="font-medium">{Math.min(startIndex + rowsPerPage, filteredDisplayRecords.length)}</span> of <span className="font-medium">{filteredDisplayRecords.length}</span> results
                 </p>
               </div>
               <div>
                 <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                  <button type="button" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="relative inline-flex items-center rounded-l-md px-2 py-2 text-orange-400 ring-1 ring-inset ring-orange-300 hover:bg-orange-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 cursor-pointer">
+                  <button type="button" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="relative inline-flex items-center rounded-l-md px-2 py-2 text-orange-400 dark:text-orange-500 ring-1 ring-inset ring-orange-300 dark:ring-orange-800 hover:bg-orange-50 dark:hover:bg-orange-950/40 focus:z-20 focus:outline-offset-0 disabled:opacity-50 cursor-pointer">
                     <span className="sr-only">Previous</span>
                     &lt;
                   </button>
-                  <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-orange-900 ring-1 ring-inset ring-orange-300 focus:outline-offset-0 bg-orange-50/50">
+                  <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-orange-900 dark:text-orange-200 ring-1 ring-inset ring-orange-300 dark:ring-orange-800 focus:outline-offset-0 bg-orange-50/50 dark:bg-orange-950/30">
                     Page {currentPage} of {totalPages}
                   </span>
-                  <button type="button" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="relative inline-flex items-center rounded-r-md px-2 py-2 text-orange-400 ring-1 ring-inset ring-orange-300 hover:bg-orange-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 cursor-pointer">
+                  <button type="button" onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="relative inline-flex items-center rounded-r-md px-2 py-2 text-orange-400 dark:text-orange-500 ring-1 ring-inset ring-orange-300 dark:ring-orange-800 hover:bg-orange-50 dark:hover:bg-orange-950/40 focus:z-20 focus:outline-offset-0 disabled:opacity-50 cursor-pointer">
                     <span className="sr-only">Next</span>
                     &gt;
                   </button>
