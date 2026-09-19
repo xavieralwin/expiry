@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchRecords, batchImportCustomAPI } from '../lib/api';
 import { trackButtonClick } from '../lib/analytics';
+import { IS_DB_MIGRATION_ACTIVE } from '../lib/maintenance';
 
 export default function ImportForm({ onClose, onSave, defaultPageType }) {
   const [file, setFile] = useState(null);
@@ -42,6 +43,10 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
   }
 
   const handleImport = async () => {
+    if (IS_DB_MIGRATION_ACTIVE) {
+      setError('Database migration in progress. Importing data is disabled.');
+      return;
+    }
     if (!file) {
       setError('Please select a file first.');
       return;
@@ -67,7 +72,9 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
       // OPTIMIZATION: Cache existing URLs to avoid 8000+ individual queries
       setProgress(prev => ({ ...prev, current: 'Fetching existing data...' }));
       const existingSnapshot = await fetchRecords();
-      const existingUrls = new Set(existingSnapshot.map(d => d.url));
+      const existingAkamaiUrls = new Set(existingSnapshot.filter(d => d.pageType === 'Akamai 301 Redirect').map(d => d.url));
+      const existingRewriteUrls = new Set(existingSnapshot.filter(d => d.pageType === 'Rewrite Rule').map(d => d.url));
+      const existingOtherUrls = new Set(existingSnapshot.filter(d => d.pageType !== 'Akamai 301 Redirect' && d.pageType !== 'Rewrite Rule').map(d => d.url));
       
       let successes = 0;
       let failures = 0;
@@ -85,20 +92,33 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
           if (!urlKey || !row[urlKey]) {
             throw new Error(`Missing URL column in row. Available headers: ${keys.slice(0, 3).join(', ')}...`);
           }
-          const urlVal = String(row[urlKey]).trim();
+          let urlVal = String(row[urlKey]).trim();
+          
+          if (defaultPageType === 'Rewrite Rule' && !urlVal.startsWith('http')) {
+            urlVal = `https://www.citibank.com.sg${urlVal.startsWith('/') ? '' : '/'}${urlVal}`;
+          }
 
           const soeidKey = keys.find(k => k.toLowerCase().includes('soeid'));
           const emailKey = keys.find(k => k.toLowerCase().includes('email'));
           const typeKey = keys.find(k => k.toLowerCase().includes('type'));
           const statusKey = keys.find(k => k.toLowerCase().includes('status'));
           const envKey = keys.find(k => k.toLowerCase().includes('env'));
+          const landingKey = keys.find(k => k.toLowerCase().includes('landing') || k.toLowerCase().includes('destination') || k.toLowerCase().includes('origin'));
           // Strict expiry finding to avoid "Created Date"
           const expiryKey = keys.find(k => k.toLowerCase().includes('expiry') && k.toLowerCase().includes('date'));
           const ownerKey = keys.find(k => k.toLowerCase().includes('owner') && !k.toLowerCase().includes('soeid') && !k.toLowerCase().includes('email'));
 
+          // Look for CHG or JIRA headers
+          const chgKey = keys.find(k => k.toLowerCase().includes('chg') || k.toLowerCase().includes('change') || k.toLowerCase().includes('jira'));
+          // Look for Release Date headers (excluding created/updated/expiry)
+          const releaseDateKey = keys.find(k => (k.toLowerCase().includes('release') || k.toLowerCase().includes('date')) && !k.toLowerCase().includes('created') && !k.toLowerCase().includes('updated') && !k.toLowerCase().includes('expiry'));
+          // Look for WMR / Request ID headers
+          const wmrKey = keys.find(k => k.toLowerCase().includes('wmr') || k.toLowerCase().includes('request id') || k.toLowerCase().includes('work request'));
+
           // Basic map
           const mappedRecord = {
             url: urlVal,
+            landingUrl: landingKey ? String(row[landingKey]) : '',
             ownerSoeid: soeidKey ? String(row[soeidKey]) : '',
             ownerEmail: emailKey ? String(row[emailKey]) : '',
             pageType: defaultPageType || (typeKey ? String(row[typeKey]) : 'HTML'),
@@ -106,21 +126,31 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
             ownerName: ownerKey ? String(row[ownerKey]) : '',
             environment: envKey ? String(row[envKey]) : 'ICMS',
             expiryDate: expiryKey ? parseExcelDate(row[expiryKey]) : '',
+            chgNo: chgKey ? String(row[chgKey]) : '',
+            releaseDate: releaseDateKey ? parseExcelDate(row[releaseDateKey]) : '',
+            wmrNo: wmrKey ? String(row[wmrKey]) : '',
             createdAt: new Date().toISOString()
           };
 
-          if (existingUrls.has(urlVal)) {
-            throw new Error(`Duplicate URL exists: ${urlVal.substring(0,30)}...`);
+          const isAkamai = mappedRecord.pageType === 'Akamai 301 Redirect';
+          const isRewrite = mappedRecord.pageType === 'Rewrite Rule';
+          
+          let targetSet = existingOtherUrls;
+          if (isAkamai) targetSet = existingAkamaiUrls;
+          else if (isRewrite) targetSet = existingRewriteUrls;
+
+          if (targetSet.has(urlVal)) {
+            throw new Error(`Duplicate URL exists in this list: ${urlVal.substring(0,30)}...`);
           }
 
           // Queue in batch
           batch.push(mappedRecord);
-          existingUrls.add(urlVal); // Prevent duplicates within the same import file
+          targetSet.add(urlVal); // Prevent duplicates within the same import file
           successes++;
           batchCount++;
 
           if (batchCount === 500) {
-            await batchImportCustomAPI(batch);
+              await batchImportCustomAPI(batch);
             batch = [];
             batchCount = 0;
           }
@@ -136,7 +166,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
 
       // Commit any remaining records
       if (batchCount > 0) {
-        await batchImportCustomAPI(batch);
+          await batchImportCustomAPI(batch);
       }
 
       if (failures > 0) {
@@ -162,9 +192,15 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
         </div>
         
         <div className="p-8 space-y-6">
+          {IS_DB_MIGRATION_ACTIVE && (
+            <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm border border-amber-200 flex items-start gap-2">
+              <span className="font-bold">⚠️ Notice:</span>
+              <span>Database migration is currently in progress. Bulk importing is disabled.</span>
+            </div>
+          )}
           {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm border border-red-200">{error}</div>}
           
-          <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => !importing && fileInputRef.current?.click()}>
+          <div className={`border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 transition-colors ${IS_DB_MIGRATION_ACTIVE ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100 cursor-pointer'}`} onClick={() => !importing && !IS_DB_MIGRATION_ACTIVE && fileInputRef.current?.click()}>
             <input 
               type="file" 
               accept=".csv, .xlsx, .xls" 
@@ -214,7 +250,7 @@ export default function ImportForm({ onClose, onSave, defaultPageType }) {
             <button 
               type="button" 
               onClick={() => { trackButtonClick('ImportForm - Start Import'); handleImport(); }}
-              disabled={!file || importing} 
+              disabled={!file || importing || IS_DB_MIGRATION_ACTIVE} 
               className="px-6 py-2.5 bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 rounded-xl font-bold shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               {importing ? 'Importing...' : 'Start Import'}

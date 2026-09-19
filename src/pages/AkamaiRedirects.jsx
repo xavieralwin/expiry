@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { fetchRecords, deleteRecord } from '../lib/api';
 import { format } from 'date-fns';
-import { Trash2, Edit, ExternalLink, Download, Upload, Search } from 'lucide-react';
-import { exportToCsv, exportToXlsx } from '../lib/exportCsv';
+import { Trash2, Edit, ExternalLink, Download, Upload, Search, Network } from 'lucide-react';
+import { exportToCsv, exportToXlsx, getReleaseMonth } from '../lib/exportCsv';
 import RecordForm from '../components/RecordForm';
 import ImportForm from '../components/ImportForm';
 import { trackButtonClick } from '../lib/analytics';
 import { IS_DB_MIGRATION_ACTIVE } from '../lib/maintenance';
 
-export default function VanityURLs() {
+export default function AkamaiRedirects() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -60,8 +60,8 @@ export default function VanityURLs() {
   };
 
   let filteredRecords = records.filter(record => {
-    // Only show Vanity URLs
-    if (record.pageType !== 'Vanity URL') return false;
+    // Only show Akamai 301 Redirects
+    if (record.pageType !== 'Akamai 301 Redirect') return false;
     
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
@@ -73,7 +73,9 @@ export default function VanityURLs() {
       (record.ownerEmail || '').toLowerCase().includes(term) ||
       (record.pageType || '').toLowerCase().includes(term) ||
       (record.environment || '').toLowerCase().includes(term) ||
-      (record.status || '').toLowerCase().includes(term)
+      (record.status || '').toLowerCase().includes(term) ||
+      (record.chgNo || '').toLowerCase().includes(term) ||
+      getReleaseMonth(record.releaseDate).toLowerCase().includes(term)
     );
   });
 
@@ -99,8 +101,8 @@ export default function VanityURLs() {
     <div className="p-4 sm:p-6 md:p-8">
       <header className="mb-6 md:mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div className="flex-shrink-0 min-w-max">
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 whitespace-nowrap">Vanity URLs</h2>
-          <p className="text-sm md:text-base text-slate-500 mt-1 whitespace-nowrap">Manage and track all Vanity URLs</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 whitespace-nowrap">Akamai 301 Redirects</h2>
+          <p className="text-sm md:text-base text-slate-500 mt-1 whitespace-nowrap">Manage and track all Akamai 301 Redirects</p>
         </div>
         <div className="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center w-full xl:justify-end">
           <div className="relative w-full md:w-auto">
@@ -120,7 +122,7 @@ export default function VanityURLs() {
                 alert('Database migration in progress. Importing data is disabled.');
                 return;
               }
-              trackButtonClick('VanityURLs - Import Data'); 
+              trackButtonClick('AkamaiRedirects - Import Data'); 
               setShowImportForm(true); 
             }}
             disabled={IS_DB_MIGRATION_ACTIVE}
@@ -130,14 +132,14 @@ export default function VanityURLs() {
             <span>Import</span>
           </button>
           <button 
-            onClick={() => { trackButtonClick('VanityURLs - Export CSV'); exportToCsv('vanity_records.csv', filteredRecords); }}
+            onClick={() => { trackButtonClick('AkamaiRedirects - Export CSV'); exportToCsv('akamai_records.csv', filteredRecords); }}
             className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Download className="w-4 h-4" />
             <span>CSV</span>
           </button>
           <button 
-            onClick={() => { trackButtonClick('VanityURLs - Export XLSX'); exportToXlsx('vanity_records.xlsx', filteredRecords); }}
+            onClick={() => { trackButtonClick('AkamaiRedirects - Export XLSX'); exportToXlsx('akamai_records.xlsx', filteredRecords); }}
             className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Download className="w-4 h-4" />
@@ -149,7 +151,7 @@ export default function VanityURLs() {
                 alert('Database migration in progress. Adding records is disabled.');
                 return;
               }
-              trackButtonClick('VanityURLs - Add Record'); 
+              trackButtonClick('AkamaiRedirects - Add Record'); 
               setEditingRecord(null); 
               setShowForm(true); 
             }}
@@ -166,33 +168,29 @@ export default function VanityURLs() {
         <table className="w-full text-left min-w-[1000px]">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-slate-500 text-sm">
-              <th className="p-4 font-medium">Vanity URL</th>
-              <th className="p-4 font-medium">Landing URL</th>
-              <th className="p-4 font-medium">Page Type</th>
-              <th className="p-4 font-medium min-w-[100px]">Environment</th>
-              <th className="p-4 font-medium" style={{minWidth: '120px'}}>Page Status</th>
-              <th className="p-4 font-medium">Owner SOEID & Email</th>
-              <th className="p-4 font-medium">Content Owner</th>
-              <th className="p-4 font-medium">Expiry Date</th>
-              <th className="p-4 font-medium text-right">Actions</th>
+              <th className="p-4 font-medium">Source URL</th>
+              <th className="p-4 font-medium">Destination URL</th>
+              <th className="p-4 font-medium">CHG</th>
+              <th className="p-4 font-medium">Release Month</th>
+              <th className="p-4 font-medium text-right whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {loading ? (
-              <tr><td colSpan="8" className="p-8 text-center text-slate-400">Loading records...</td></tr>
+              <tr><td colSpan="5" className="p-8 text-center text-slate-400">Loading records...</td></tr>
             ) : paginatedRecords.length === 0 ? (
-              <tr><td colSpan="8" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
+              <tr><td colSpan="5" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
             ) : paginatedRecords.map(record => (
               <tr key={record.id} className="hover:bg-slate-50 transition-colors">
                 <td className="p-4">
-                  <div className="w-48 lg:w-64">
+                  <div className="w-64 lg:w-96">
                     <a href={record.url} target="_blank" rel="noreferrer" className="text-purple-600 hover:text-purple-800 hover:underline flex items-center gap-1 truncate" title={record.url}>
                       <span className="font-semibold truncate">{record.url}</span> <ExternalLink className="w-3 h-3 flex-shrink-0" />
                     </a>
                   </div>
                 </td>
                 <td className="p-4">
-                  <div className="w-48 lg:w-64">
+                  <div className="w-64 lg:w-96">
                     {record.landingUrl ? (
                       <a href={record.landingUrl.startsWith('http') ? record.landingUrl : `https://${record.landingUrl}`} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-slate-800 hover:underline text-xs truncate flex items-center gap-1" title={record.landingUrl}>
                         <span className="truncate">{record.landingUrl}</span> <ExternalLink className="w-3 h-3 flex-shrink-0" />
@@ -202,32 +200,11 @@ export default function VanityURLs() {
                     )}
                   </div>
                 </td>
-                <td className="p-4 text-slate-600 font-medium">
-                  {record.pageType || '-'}
-                </td>
-                <td className="p-4 text-slate-600 font-medium">
-                  {record.environment || 'ICMS'}
+                <td className="p-4">
+                  <span className="text-slate-600 text-sm font-medium">{record.chgNo || '-'}</span>
                 </td>
                 <td className="p-4">
-                  <span className={`inline-flex px-2 py-1 rounded text-xs font-bold w-max ${record.status === 'Live' || record.status === 'Active' ? 'bg-[#86efac] text-emerald-950' : 'bg-[#fbcfe8] text-pink-950'}`}>
-                    {record.status || 'Live'}
-                  </span>
-                </td>
-                <td className="p-4">
-                  <div className="flex flex-col gap-1 w-48 truncate">
-                    <span className="text-slate-700 font-medium">{record.ownerSoeid || '-'}</span>
-                    <span className="text-slate-500 text-xs truncate" title={record.ownerEmail}>{record.ownerEmail || '-'}</span>
-                  </div>
-                </td>
-                <td className="p-4 text-slate-600">
-                  {record.ownerName || '-'}
-                </td>
-                <td className="p-4">
-                  {record.expiryDate ? (
-                    <span className={`font-medium ${new Date(record.expiryDate) < new Date() ? 'text-red-600' : 'text-slate-700'}`}>
-                      {format(new Date(record.expiryDate), 'MMM d, yyyy')}
-                    </span>
-                  ) : '-'}
+                  <span className="text-slate-600 text-sm font-medium">{getReleaseMonth(record.releaseDate)}</span>
                 </td>
                 <td className="p-4 text-right whitespace-nowrap space-x-2">
                   <button 
@@ -236,7 +213,7 @@ export default function VanityURLs() {
                         alert('Database migration in progress. Editing records is disabled.');
                         return;
                       }
-                      trackButtonClick('VanityURLs - Edit Record');
+                      trackButtonClick('AkamaiRedirects - Edit Record');
                       handleEdit(record);
                     }}
                     disabled={IS_DB_MIGRATION_ACTIVE}
@@ -251,7 +228,7 @@ export default function VanityURLs() {
                         alert('Database migration in progress. Deleting records is disabled.');
                         return;
                       }
-                      trackButtonClick('VanityURLs - Delete Record');
+                      trackButtonClick('AkamaiRedirects - Delete Record');
                       handleDelete(record.id);
                     }}
                     disabled={IS_DB_MIGRATION_ACTIVE}
@@ -303,7 +280,7 @@ export default function VanityURLs() {
           initialData={editingRecord}
           onClose={() => setShowForm(false)} 
           onSave={() => loadRecords()} 
-          defaultPageType="Vanity URL"
+          defaultPageType="Akamai 301 Redirect"
         />
       )}
 
@@ -311,7 +288,7 @@ export default function VanityURLs() {
         <ImportForm 
           onClose={() => setShowImportForm(false)} 
           onSave={() => { loadRecords(); setShowImportForm(false); }} 
-          defaultPageType="Vanity URL"
+          defaultPageType="Akamai 301 Redirect"
         />
       )}
     </div>

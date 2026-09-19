@@ -5,7 +5,12 @@ import OverviewDashboard from './pages/OverviewDashboard';
 import AllRecords from './pages/AllRecords';
 import ExpiringSoon from './pages/ExpiringSoon';
 import VanityURLs from './pages/VanityURLs';
+import AkamaiRedirects from './pages/AkamaiRedirects';
+import RewriteRules from './pages/RewriteRules';
+import MALeaveTracker from './pages/MALeaveTracker';
+import SOEAccessMatrix from './pages/SOEAccessMatrix';
 import Login from './pages/Login';
+import { trackUserVisit } from './lib/analytics';
 
 function ProtectedRoute({ children }) {
   const isAuth = localStorage.getItem('isAuthenticated') === 'true';
@@ -19,8 +24,19 @@ function ProtectedRoute({ children }) {
 function App() {
   const location = useLocation();
 
-  // Analytics removed
+  useEffect(() => {
+    // Check and track if the user is a new or repeated user
+    trackUserVisit();
+  }, []);
 
+  useEffect(() => {
+    // Record page view on path change
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'page_view', {
+        page_path: location.pathname
+      });
+    }
+  }, [location.pathname]);
 
   return (
     <Routes>
@@ -36,8 +52,12 @@ function App() {
       >
         <Route index element={<OverviewDashboard />} />
         <Route path="records" element={<AllRecords />} />
+        <Route path="ma-leave-tracker" element={<MALeaveTracker />} />
+        <Route path="soe-access-matrix" element={<SOEAccessMatrix />} />
         <Route path="expiring" element={<ExpiringSoon />} />
         <Route path="vanity" element={<VanityURLs />} />
+        <Route path="akamai" element={<AkamaiRedirects />} />
+        <Route path="rewrite-rules" element={<RewriteRules />} />
       </Route>
     </Routes>
   );

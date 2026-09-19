@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchRecords } from '../lib/api';
-import { differenceInDays, format, parseISO, startOfMonth } from 'date-fns';
+import { differenceInDays, format, startOfMonth } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { LayoutDashboard, Link, AlertTriangle, Monitor, Globe } from 'lucide-react';
 
@@ -27,11 +27,12 @@ export default function OverviewDashboard() {
         const expiryByMonth = {};
 
         records.forEach(r => {
+          if (r.pageType === 'Akamai 301 Redirect' || r.pageType === 'Rewrite Rule') return; // Exclude Akamai & Rewrite Rules from main stats
           // Accumulate main stats
           if (r.status === 'Live' || r.status === 'Active') liveCount++;
           if (r.pageType === 'Vanity URL') vanityCount++;
           
-          if (r.expiryDate) {
+          if (r.expiryDate && r.pageType !== 'Vanity URL') {
              const expiry = new Date(r.expiryDate);
              const daysLeft = differenceInDays(expiry, now);
              if (daysLeft >= 0 && daysLeft <= 30 && (r.status === 'Live' || r.status === 'Active')) {
@@ -59,7 +60,7 @@ export default function OverviewDashboard() {
         });
 
         setStats({
-          total: records.length,
+          total: records.filter(r => r.pageType !== 'Akamai 301 Redirect' && r.pageType !== 'Rewrite Rule').length,
           live: liveCount,
           expiringSoon: expiringCount,
           vanity: vanityCount

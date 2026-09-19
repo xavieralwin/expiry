@@ -12,7 +12,9 @@ const PORT = process.env.PORT || 3001;
 // Fully permissive CORS since frontend URL might be dynamic
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 let db;
 
 initDb().then(database => {
@@ -27,7 +29,7 @@ initDb().then(database => {
 // GET /api/urls
 app.get('/api/urls', async (req, res) => {
   try {
-    const urls = await db.all('SELECT * FROM urls ORDER BY createdAt DESC');
+    const urls = await db.all('SELECT * FROM urls ORDER BY updatedAt DESC');
     res.json(urls);
   } catch (error) {
     console.error(error);
@@ -40,12 +42,12 @@ app.post('/api/urls', async (req, res) => {
   try {
     const id = req.body.id || uuidv4();
     const now = new Date().toISOString();
-    const { url, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment } = req.body;
+    const { url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, wmrNo } = req.body;
     
     await db.run(
-      `INSERT INTO urls (id, url, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, createdAt, updatedAt) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, url, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment || 'ICMS', now, now]
+      `INSERT INTO urls (id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, wmrNo, createdAt, updatedAt) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment || 'ICMS', jiraNo, chgNo, releaseDate, wmrNo, now, now]
     );
     
     const newRecord = await db.get('SELECT * FROM urls WHERE id = ?', id);
@@ -61,11 +63,11 @@ app.put('/api/urls/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const now = new Date().toISOString();
-    const { url, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment } = req.body;
+    const { url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, wmrNo } = req.body;
     
     await db.run(
-      `UPDATE urls SET url = ?, ownerName = ?, ownerSoeid = ?, ownerEmail = ?, pageType = ?, status = ?, expiryDate = ?, environment = ?, updatedAt = ? WHERE id = ?`,
-      [url, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment || 'ICMS', now, id]
+      `UPDATE urls SET url = ?, landingUrl = ?, ownerName = ?, ownerSoeid = ?, ownerEmail = ?, pageType = ?, status = ?, expiryDate = ?, environment = ?, jiraNo = ?, chgNo = ?, releaseDate = ?, wmrNo = ?, updatedAt = ? WHERE id = ?`,
+      [url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment || 'ICMS', jiraNo, chgNo, releaseDate, wmrNo, now, id]
     );
     
     const updatedRecord = await db.get('SELECT * FROM urls WHERE id = ?', id);
@@ -103,9 +105,9 @@ app.post('/api/urls/batch', async (req, res) => {
     for (const item of items) {
       const id = item.id || uuidv4();
       await db.run(
-        `INSERT INTO urls (id, url, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, createdAt, updatedAt) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, item.url, item.ownerName, item.ownerSoeid, item.ownerEmail, item.pageType, item.status, item.expiryDate, item.environment || 'ICMS', now, now]
+        `INSERT INTO urls (id, url, landingUrl, ownerName, ownerSoeid, ownerEmail, pageType, status, expiryDate, environment, jiraNo, chgNo, releaseDate, wmrNo, createdAt, updatedAt) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, item.url, item.landingUrl, item.ownerName, item.ownerSoeid, item.ownerEmail, item.pageType, item.status, item.expiryDate, item.environment || 'ICMS', item.jiraNo, item.chgNo, item.releaseDate, item.wmrNo, now, now]
       );
     }
     
@@ -158,38 +160,45 @@ app.post('/api/urls/notify', async (req, res) => {
     // Generate HTML for the email
     const rowsHtml = records.map(r => `
       <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">
-          <a href="${r.url}" style="color: #6366f1;">${r.url}</a>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; word-break: break-all;">
+          <a href="${r.url}" style="color: #a78bfa; text-decoration: none;">${r.url}</a>
         </td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.ownerName || '-'}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${r.ownerEmail || '-'}</td>
-        <td style="padding: 8px; border-bottom: 1px solid #ddd; color: #dc2626; font-weight: bold;">
+        <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #475569; word-wrap: break-word;">${r.ownerName || '-'}</td>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #475569; word-wrap: break-word;">${r.ownerEmail || '-'}</td>
+        <td style="padding: 10px 14px; border-bottom: 1px solid #e2e8f0; font-size: 13px; color: #f97316; font-weight: bold; white-space: nowrap;">
           ${r.expiryDate ? new Date(r.expiryDate).toLocaleDateString() : '-'}
         </td>
       </tr>
     `).join('');
 
     const htmlBody = `
-      <div style="font-family: Arial, sans-serif; color: #333;">
-        <h2 style="color: #ea580c;">🚨 Action Required: Expiring URLs</h2>
-        <p>The following URLs are expiring soon and require review:</p>
-        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 20px;">
-          <thead>
-            <tr style="background-color: #f9fafb;">
-              <th style="padding: 10px; border-bottom: 2px solid #ddd;">URL</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd;">Content Owner</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd;">Owner Email</th>
-              <th style="padding: 10px; border-bottom: 2px solid #ddd;">Expiry Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-        <p>Please take action and renew or delete these pages in the system.</p>
-        <p style="font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 10px;">
-          This is an automated notification from the URL Expiry Tracker system.
-        </p>
+      <div style="font-family: 'Inter', Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; font-size: 14px;">
+        <div style="max-width: 800px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; padding: 32px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <h2 style="color: #f97316; margin-top: 0; font-size: 20px;">
+            🚨 Action Required: Expiring URLs
+          </h2>
+          <p style="color: #475569; font-size: 14px; line-height: 1.5;">The following URLs are expiring soon and require your review:</p>
+          
+          <table style="width: 100%; border-collapse: collapse; text-align: left; margin: 24px 0; table-layout: fixed;">
+            <thead>
+              <tr style="background-color: #f8fafc;">
+                <th style="width: 45%; padding: 10px 14px; border-bottom: 2px solid #e2e8f0; font-size: 13px; color: #1e293b; font-weight: 600;">URL</th>
+                <th style="width: 25%; padding: 10px 14px; border-bottom: 2px solid #e2e8f0; font-size: 13px; color: #1e293b; font-weight: 600;">Content Owner</th>
+                <th style="width: 15%; padding: 10px 14px; border-bottom: 2px solid #e2e8f0; font-size: 13px; color: #1e293b; font-weight: 600;">Owner Email</th>
+                <th style="width: 15%; padding: 10px 14px; border-bottom: 2px solid #e2e8f0; font-size: 13px; color: #1e293b; font-weight: 600;">Expiry Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          
+          <p style="color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 32px;">Please take action to renew or delete these pages in the system.</p>
+          
+          <div style="font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 24px;">
+            This is an automated notification from the URL Expiry Tracker.
+          </div>
+        </div>
       </div>
     `;
 
@@ -216,3 +225,149 @@ app.post('/api/urls/notify', async (req, res) => {
     res.status(500).json({ error: 'Failed to send emails. Check your SMTP configuration.' });
   }
 });
+
+// ==================== MA LEAVES API ====================
+
+// GET /api/ma-leaves
+app.get('/api/ma-leaves', async (req, res) => {
+  try {
+    const leaves = await db.all('SELECT * FROM ma_leaves ORDER BY idName ASC');
+    res.json(leaves);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch MA leaves' });
+  }
+});
+
+// POST /api/ma-leaves
+app.post('/api/ma-leaves', async (req, res) => {
+  try {
+    const id = req.body.id || `ma-${uuidv4()}`;
+    const now = new Date().toISOString();
+    const { seoId, idName, mappingIds, fromDate, toDate, applied, maStatus } = req.body;
+    
+    await db.run(
+      `INSERT INTO ma_leaves (id, seoId, idName, mappingIds, fromDate, toDate, applied, maStatus, createdAt, updatedAt) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, seoId, idName, mappingIds || '', fromDate || '', toDate || '', applied || 'Done', maStatus || 'Not started', now, now]
+    );
+    
+    const newRecord = await db.get('SELECT * FROM ma_leaves WHERE id = ?', id);
+    res.status(201).json(newRecord);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create MA leave record' });
+  }
+});
+
+// PUT /api/ma-leaves/:id
+app.put('/api/ma-leaves/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const now = new Date().toISOString();
+    const { seoId, idName, mappingIds, fromDate, toDate, applied, maStatus } = req.body;
+    
+    await db.run(
+      `UPDATE ma_leaves SET seoId = ?, idName = ?, mappingIds = ?, fromDate = ?, toDate = ?, applied = ?, maStatus = ?, updatedAt = ? WHERE id = ?`,
+      [seoId, idName, mappingIds, fromDate, toDate, applied, maStatus, now, id]
+    );
+    
+    const updatedRecord = await db.get('SELECT * FROM ma_leaves WHERE id = ?', id);
+    res.json(updatedRecord);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update MA leave record' });
+  }
+});
+
+// DELETE /api/ma-leaves/:id
+app.delete('/api/ma-leaves/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.run('DELETE FROM ma_leaves WHERE id = ?', id);
+    res.json({ success: true, id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete MA leave record' });
+  }
+});
+
+// ==================== SOE ACCESS API ====================
+
+// GET /api/soe-access
+app.get('/api/soe-access', async (req, res) => {
+  try {
+    const rows = await db.all('SELECT * FROM soe_access ORDER BY name ASC');
+    const result = rows.map(r => ({
+      ...r,
+      accessFlags: r.accessFlags ? JSON.parse(r.accessFlags) : {}
+    }));
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch SOE access list' });
+  }
+});
+
+// POST /api/soe-access
+app.post('/api/soe-access', async (req, res) => {
+  try {
+    const id = req.body.id || `soe-${uuidv4()}`;
+    const now = new Date().toISOString();
+    const { name, soeId, email, accessFlags } = req.body;
+    const flagsJson = JSON.stringify(accessFlags || {});
+
+    await db.run(
+      `INSERT INTO soe_access (id, name, soeId, email, accessFlags, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [id, name, soeId, email || '', flagsJson, now, now]
+    );
+
+    const newRecord = await db.get('SELECT * FROM soe_access WHERE id = ?', id);
+    res.status(201).json({
+      ...newRecord,
+      accessFlags: newRecord.accessFlags ? JSON.parse(newRecord.accessFlags) : {}
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create SOE resource' });
+  }
+});
+
+// PUT /api/soe-access/:id
+app.put('/api/soe-access/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const now = new Date().toISOString();
+    const { name, soeId, email, accessFlags } = req.body;
+    const flagsJson = JSON.stringify(accessFlags || {});
+
+    await db.run(
+      `UPDATE soe_access SET name = ?, soeId = ?, email = ?, accessFlags = ?, updatedAt = ? WHERE id = ?`,
+      [name, soeId, email, flagsJson, now, id]
+    );
+
+    const updatedRecord = await db.get('SELECT * FROM soe_access WHERE id = ?', id);
+    res.json({
+      ...updatedRecord,
+      accessFlags: updatedRecord.accessFlags ? JSON.parse(updatedRecord.accessFlags) : {}
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to update SOE resource' });
+  }
+});
+
+// DELETE /api/soe-access/:id
+app.delete('/api/soe-access/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.run('DELETE FROM soe_access WHERE id = ?', id);
+    res.json({ success: true, id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete SOE resource' });
+  }
+});
+
+

@@ -3,20 +3,38 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: url-expiry-tracker-frontend
     restart: unless-stopped
     depends_on:
       - backend
-    ports:
-      - "8081:8080"
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - '-qO-'
+        - 'http://127.0.0.1:8080/'
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    container_name: url-expiry-tracker-backend
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      - PORT=3001
+      PORT: 3001
     volumes:
-      - ./server/database.sqlite:/app/server/database.sqlite
+      - '/data/coolify/databases/expiry:/app/data'
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - '-qO-'
+        - 'http://127.0.0.1:3001/health'
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

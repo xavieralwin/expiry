@@ -6,6 +6,7 @@ import { exportToCsv } from '../lib/exportCsv';
 import RecordForm from '../components/RecordForm';
 import ImportForm from '../components/ImportForm';
 import { trackButtonClick } from '../lib/analytics';
+import { IS_DB_MIGRATION_ACTIVE } from '../lib/maintenance';
 
 export default function AllRecords() {
   const [records, setRecords] = useState([]);
@@ -39,6 +40,10 @@ export default function AllRecords() {
   }, []);
 
   const handleDelete = async (id) => {
+    if (IS_DB_MIGRATION_ACTIVE) {
+      alert('Database migration is currently in progress. Deletion of records is disabled.');
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this record?')) {
       try {
         await deleteRecord(id);
@@ -55,25 +60,33 @@ export default function AllRecords() {
   };
 
   let filteredRecords = records.filter(record => {
-    // Hide Vanity URLs from main Dashboard
-    if (record.pageType === 'Vanity URL') return false;
+    // Hide Vanity URLs and Akamai Redirects from main Dashboard
+    if (record.pageType === 'Vanity URL' || record.pageType === 'Akamai 301 Redirect') return false;
     
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
       (record.url || '').toLowerCase().includes(term) ||
+      (record.landingUrl || '').toLowerCase().includes(term) ||
       (record.ownerName || '').toLowerCase().includes(term) ||
       (record.ownerSoeid || '').toLowerCase().includes(term) ||
       (record.ownerEmail || '').toLowerCase().includes(term) ||
       (record.pageType || '').toLowerCase().includes(term) ||
       (record.environment || '').toLowerCase().includes(term) ||
-      (record.status || '').toLowerCase().includes(term)
+      (record.status || '').toLowerCase().includes(term) ||
+      (record.wmrNo || '').toLowerCase().includes(term)
     );
   });
 
-  // Smart Exact Match: If the user searches for an exact URL, only show that specific URL.
+  // Smart Exact Match: Ignore index.html and trailing slashes so all variations match as exact
   if (searchTerm) {
-    const exactMatches = filteredRecords.filter(r => (r.url || '').toLowerCase() === searchTerm.toLowerCase());
+    const cleanUrl = (str) => (str || '').toLowerCase().trim().replace(/\/index\.html?$/i, '').replace(/\/+$/, '');
+    const normTerm = cleanUrl(searchTerm);
+    const exactMatches = filteredRecords.filter(r => {
+      const normUrl = cleanUrl(r.url);
+      const normLanding = cleanUrl(r.landingUrl);
+      return normUrl === normTerm || (normLanding && normLanding === normTerm);
+    });
     if (exactMatches.length > 0) {
       filteredRecords = exactMatches;
     }
@@ -84,41 +97,58 @@ export default function AllRecords() {
   const totalPages = Math.ceil(filteredRecords.length / rowsPerPage);
 
   return (
-    <div className="p-8">
-      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900">All Records</h2>
-          <p className="text-slate-500 mt-1">Manage and track all URL expiry dates</p>
+    <div className="p-4 sm:p-6 md:p-8">
+      <header className="mb-6 md:mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+        <div className="flex-shrink-0 min-w-max">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 whitespace-nowrap">All Records</h2>
+          <p className="text-sm md:text-base text-slate-500 mt-1 whitespace-nowrap">Manage and track all URL expiry dates</p>
         </div>
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-          <div className="relative">
+        <div className="flex flex-col md:flex-row flex-wrap gap-4 items-start md:items-center w-full xl:justify-end">
+          <div className="relative w-full md:w-auto">
             <input 
               type="text" 
               placeholder="Search records..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none w-64 text-sm"
+              className="pl-10 pr-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none w-full md:w-64 text-sm"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           </div>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3 w-full md:w-auto">
           <button 
-            onClick={() => { trackButtonClick('Dashboard - Import Data'); setShowImportForm(true); }}
-            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            onClick={() => { 
+              if (IS_DB_MIGRATION_ACTIVE) {
+                alert('Database migration in progress. Importing data is disabled.');
+                return;
+              }
+              trackButtonClick('Dashboard - Import Data'); 
+              setShowImportForm(true); 
+            }}
+            disabled={IS_DB_MIGRATION_ACTIVE}
+            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload className="w-4 h-4" />
-            <span>Import Data</span>
+            <span>Import</span>
           </button>
           <button 
             onClick={() => { trackButtonClick('Dashboard - Export CSV'); exportToCsv('all_records.csv', filteredRecords); }}
-            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto text-sm md:text-base"
           >
             <Download className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span>CSV</span>
           </button>
           <button 
-            onClick={() => { trackButtonClick('Dashboard - Add Record'); setEditingRecord(null); setShowForm(true); }}
-            className="bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            onClick={() => { 
+              if (IS_DB_MIGRATION_ACTIVE) {
+                alert('Database migration in progress. Adding records is disabled.');
+                return;
+              }
+              trackButtonClick('Dashboard - Add Record'); 
+              setEditingRecord(null); 
+              setShowForm(true); 
+            }}
+            disabled={IS_DB_MIGRATION_ACTIVE}
+            className="bg-[#a78bfa] hover:bg-[#9061f9] text-purple-950 px-4 md:px-5 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer w-full md:w-auto col-span-2 md:col-span-1 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>+ Add Record</span>
           </button>
@@ -136,15 +166,16 @@ export default function AllRecords() {
               <th className="p-4 font-medium" style={{minWidth: '120px'}}>Page Status</th>
               <th className="p-4 font-medium">Owner SOEID & Email</th>
               <th className="p-4 font-medium">Content Owner</th>
+              <th className="p-4 font-medium">WMR No</th>
               <th className="p-4 font-medium">Expiry Date</th>
               <th className="p-4 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {loading ? (
-              <tr><td colSpan="7" className="p-8 text-center text-slate-400">Loading records...</td></tr>
+              <tr><td colSpan="8" className="p-8 text-center text-slate-400">Loading records...</td></tr>
             ) : paginatedRecords.length === 0 ? (
-              <tr><td colSpan="7" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
+              <tr><td colSpan="8" className="p-12 text-center text-slate-400">No records found matching your criteria.</td></tr>
             ) : paginatedRecords.map(record => (
               <tr key={record.id} className="hover:bg-slate-50 transition-colors">
                 <td className="p-4">
@@ -172,6 +203,9 @@ export default function AllRecords() {
                 <td className="p-4 text-slate-600">
                   {record.ownerName || '-'}
                 </td>
+                <td className="p-4 text-slate-600 font-medium">
+                  {record.wmrNo || '-'}
+                </td>
                 <td className="p-4">
                   {record.expiryDate ? (
                     <span className={`font-medium ${new Date(record.expiryDate) < new Date() ? 'text-red-600' : 'text-slate-700'}`}>
@@ -179,11 +213,35 @@ export default function AllRecords() {
                     </span>
                   ) : '-'}
                 </td>
-                <td className="p-4 text-right space-x-2">
-                  <button onClick={() => { trackButtonClick('Dashboard - Edit Record'); handleEdit(record); }} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer" title="Edit">
+                <td className="p-4 text-right whitespace-nowrap space-x-2">
+                  <button 
+                    onClick={() => {
+                      if (IS_DB_MIGRATION_ACTIVE) {
+                        alert('Database migration in progress. Editing records is disabled.');
+                        return;
+                      }
+                      trackButtonClick('Dashboard - Edit Record');
+                      handleEdit(record);
+                    }}
+                    disabled={IS_DB_MIGRATION_ACTIVE}
+                    className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Edit"
+                  >
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button onClick={() => { trackButtonClick('Dashboard - Delete Record'); handleDelete(record.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Delete">
+                  <button 
+                    onClick={() => {
+                      if (IS_DB_MIGRATION_ACTIVE) {
+                        alert('Database migration in progress. Deleting records is disabled.');
+                        return;
+                      }
+                      trackButtonClick('Dashboard - Delete Record');
+                      handleDelete(record.id);
+                    }}
+                    disabled={IS_DB_MIGRATION_ACTIVE}
+                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>

@@ -21,6 +21,7 @@ export default function ExpiringSoon() {
     fetchRecords()
       .then(fetched => {
         const filtered = fetched.filter(record => {
+          if (record.pageType === 'Akamai 301 Redirect' || record.pageType === 'Rewrite Rule' || record.pageType === 'Vanity URL') return false;
           if ((record.status !== 'Active' && record.status !== 'Live') || !record.expiryDate) return false;
           const daysToExpiry = differenceInDays(new Date(record.expiryDate), new Date());
           return daysToExpiry <= 30 && daysToExpiry >= -9999; // include already expired ones
@@ -47,13 +48,20 @@ export default function ExpiringSoon() {
       (record.ownerSoeid || '').toLowerCase().includes(term) ||
       (record.ownerEmail || '').toLowerCase().includes(term) ||
       (record.pageType || '').toLowerCase().includes(term) ||
-      (record.environment || '').toLowerCase().includes(term)
+      (record.environment || '').toLowerCase().includes(term) ||
+      (record.wmrNo || '').toLowerCase().includes(term)
     );
   });
 
-  // Smart Exact Match: If the user searches for an exact URL, only show that specific URL.
+  // Smart Exact Match: Ignore index.html and trailing slashes so all variations match as exact
   if (searchTerm) {
-    const exactMatches = filteredDisplayRecords.filter(r => (r.url || '').toLowerCase() === searchTerm.toLowerCase());
+    const cleanUrl = (str) => (str || '').toLowerCase().trim().replace(/\/index\.html?$/i, '').replace(/\/+$/, '');
+    const normTerm = cleanUrl(searchTerm);
+    const exactMatches = filteredDisplayRecords.filter(r => {
+      const normUrl = cleanUrl(r.url);
+      const normLanding = cleanUrl(r.landingUrl);
+      return normUrl === normTerm || (normLanding && normLanding === normTerm);
+    });
     if (exactMatches.length > 0) {
       filteredDisplayRecords = exactMatches;
     }
@@ -86,42 +94,44 @@ export default function ExpiringSoon() {
   };
 
   return (
-    <div className="p-8">
-      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center bg-pink-50 border border-pink-100 p-6 rounded-2xl shadow-sm gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-pink-900 flex items-center gap-2">
-            <AlertTriangle className="w-8 h-8 text-pink-500" /> Expiring Soon
+    <div className="p-4 sm:p-6 md:p-8">
+      <header className="mb-6 md:mb-8 flex flex-col xl:flex-row justify-between items-start xl:items-center bg-pink-50 border border-pink-100 p-4 md:p-6 rounded-2xl shadow-sm gap-4">
+        <div className="flex-shrink-0 min-w-max">
+          <h2 className="text-2xl md:text-3xl font-bold text-pink-900 flex items-center gap-2 whitespace-nowrap">
+            <AlertTriangle className="w-6 h-6 md:w-8 md:h-8 text-pink-500" /> Expiring Soon
           </h2>
-          <p className="text-pink-700/80 mt-1">URLs that are active and expiring within the next 30 days</p>
+          <p className="text-sm md:text-base text-pink-700/80 mt-1 whitespace-nowrap">URLs that are active and expiring within the next 30 days</p>
         </div>
-        <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
-          <div className="relative">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center flex-wrap gap-4 w-full xl:justify-end xl:w-auto">
+          <div className="relative w-full md:w-auto">
             <input 
               type="text" 
               placeholder="Search expiring..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none w-64 text-sm bg-white"
+              className="pl-10 pr-4 py-2 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none w-full md:w-64 text-sm bg-white"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           </div>
-          <button 
-            onClick={() => { trackButtonClick('ExpiringSoon - Send Alerts'); handleSendAlerts(); }}
-            disabled={sendingEmail}
-            className="bg-[#fbcfe8] border-none hover:bg-pink-300 text-pink-950 px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            <Mail className="w-4 h-4" />
-            <span>{sendingEmail ? 'Sending...' : 'Send Alerts'}</span>
-          </button>
-          <button 
-            onClick={() => { trackButtonClick('ExpiringSoon - Export CSV'); exportToCsv('expiring_records.csv', filteredDisplayRecords); }}
-            className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export CSV</span>
-          </button>
-          <div className="bg-orange-500 text-white px-4 py-2 rounded-lg font-bold shadow shadow-orange-200">
-            {records.length} Action Needed
+          <div className="grid grid-cols-2 md:flex md:flex-row gap-2 md:gap-3 w-full md:w-auto">
+            <button 
+              onClick={() => { trackButtonClick('ExpiringSoon - Send Alerts'); handleSendAlerts(); }}
+              disabled={sendingEmail}
+              className="bg-[#fbcfe8] border-none hover:bg-pink-300 text-pink-950 px-3 md:px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-sm md:text-base col-span-1"
+            >
+              <Mail className="w-4 h-4" />
+              <span>{sendingEmail ? 'Sending...' : 'Alerts'}</span>
+            </button>
+            <button 
+              onClick={() => { trackButtonClick('ExpiringSoon - Export CSV'); exportToCsv('expiring_records.csv', filteredDisplayRecords); }}
+              className="bg-[#bfdbfe] border-none hover:bg-blue-300 text-blue-900 px-3 md:px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base col-span-1"
+            >
+              <Download className="w-4 h-4" />
+              <span>CSV</span>
+            </button>
+            <div className="bg-orange-500 text-white px-3 md:px-4 py-2 rounded-lg font-bold shadow shadow-orange-200 col-span-2 md:col-auto flex justify-center items-center text-sm md:text-base">
+              {records.length} Action Needed
+            </div>
           </div>
         </div>
       </header>
@@ -135,15 +145,16 @@ export default function ExpiringSoon() {
               <th className="p-4 font-medium min-w-[100px]">Environment</th>
               <th className="p-4 font-medium">Owner SOEID & Email</th>
               <th className="p-4 font-medium">Content Owner</th>
+              <th className="p-4 font-medium">WMR No</th>
               <th className="p-4 font-medium">Expiry Date</th>
               <th className="p-4 font-medium text-right">Days Left</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {loading ? (
-              <tr><td colSpan="7" className="p-8 text-center text-slate-400">Loading records...</td></tr>
+              <tr><td colSpan="8" className="p-8 text-center text-slate-400">Loading records...</td></tr>
             ) : paginatedRecords.length === 0 ? (
-              <tr><td colSpan="7" className="p-12 text-center text-slate-400">No records found.</td></tr>
+              <tr><td colSpan="8" className="p-12 text-center text-slate-400">No records found.</td></tr>
             ) : paginatedRecords.map(record => {
               const daysLeft = differenceInDays(new Date(record.expiryDate), new Date());
               const isExpired = daysLeft < 0;
@@ -164,6 +175,7 @@ export default function ExpiringSoon() {
                   </div>
                 </td>
                 <td className="p-4 text-slate-600">{record.ownerName || '-'}</td>
+                <td className="p-4 text-slate-600 font-medium">{record.wmrNo || '-'}</td>
                 <td className="p-4 font-bold text-red-600">
                   {format(new Date(record.expiryDate), 'MMM d, yyyy')}
                 </td>

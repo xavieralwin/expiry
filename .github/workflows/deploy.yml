@@ -19,14 +19,14 @@ jobs:
           port: 2222
           script: |
             # Repository path on your remote server
-            REPO_DIR="/home/alwin/expiry"
+            REPO_DIR="$HOME/expiry"
             
             if [ ! -d "$REPO_DIR" ]; then
-              echo "Error: Project directory $REPO_DIR not found!"
-              exit 1
+              echo "Project directory $REPO_DIR not found. Cloning repository..."
+              git clone https://github.com/xavieralwin/expiry.git "$REPO_DIR"
             fi
 
-            cd $REPO_DIR
+            cd "$REPO_DIR"
             
             # Pull latest changes from git
             git reset --hard
@@ -34,3 +34,4 @@ jobs:
             
             # Restart with docker compose
             docker compose up -d --build
+

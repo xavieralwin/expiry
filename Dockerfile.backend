@@ -1,6 +1,12 @@
 # Use Node.js for running the backend API
 FROM node:20-alpine
 
+# Install timezone data
+RUN apk add --no-cache tzdata
+
+# Set container timezone
+ENV TZ=Asia/Kolkata
+
 WORKDIR /app
 
 # Install only production dependencies (skip frontend dev tools)
@@ -11,7 +17,7 @@ RUN npm ci --omit=dev
 COPY server/ ./server/
 
 # Expose the API port
-EXPOSE 8080
+EXPOSE 3001
 
 # Run the Node Express server directly
 CMD ["node", "server/index.js"]
