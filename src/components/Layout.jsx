@@ -31,6 +31,10 @@ function parseDateString(dateStr) {
   return isNaN(fallback.getTime()) ? null : fallback;
 }
 
+// Toggle flag to temporarily hide unreleased features for UAT -> PROD deployment today.
+// Change HIDE_UNRELEASED_FEATURES to false on Monday to re-enable them.
+const HIDE_UNRELEASED_FEATURES = true;
+
 export default function Layout() {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -145,13 +149,15 @@ export default function Layout() {
           <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">URL Tracker</h1>
         </div>
         <div className="flex items-center space-x-1">
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-            title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-500" />}
-          </button>
+          {!HIDE_UNRELEASED_FEATURES && (
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {darkMode ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-500" />}
+            </button>
+          )}
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
@@ -244,42 +250,48 @@ export default function Layout() {
             <span>Expiring Soon</span>
           </NavLink>
 
-          <NavLink 
-            to="/ma-leave-tracker" 
-            onClick={() => { trackButtonClick('Sidebar - MA Leave Tracker'); closeMobileMenu(); }}
-            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-purple-600 text-white font-bold shadow-md' : 'text-slate-500 dark:text-slate-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-900 dark:hover:text-purple-300 font-medium'}`}
-          >
-            <Calendar className="w-5 h-5 text-purple-400" />
-            <div className="flex items-center justify-between w-full">
-              <span>MA Leave Tracker</span>
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-            </div>
-          </NavLink>
+          {!HIDE_UNRELEASED_FEATURES && (
+            <>
+              <NavLink 
+                to="/ma-leave-tracker" 
+                onClick={() => { trackButtonClick('Sidebar - MA Leave Tracker'); closeMobileMenu(); }}
+                className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-purple-600 text-white font-bold shadow-md' : 'text-slate-500 dark:text-slate-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-900 dark:hover:text-purple-300 font-medium'}`}
+              >
+                <Calendar className="w-5 h-5 text-purple-400" />
+                <div className="flex items-center justify-between w-full">
+                  <span>MA Leave Tracker</span>
+                  <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
+                </div>
+              </NavLink>
 
-          <NavLink 
-            to="/soe-access-matrix" 
-            onClick={() => { trackButtonClick('Sidebar - SOE Access'); closeMobileMenu(); }}
-            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-indigo-600 text-white font-bold shadow-md' : 'text-slate-500 dark:text-slate-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-900 dark:hover:text-indigo-300 font-medium'}`}
-          >
-            <ShieldCheck className="w-5 h-5 text-indigo-400" />
-            <span>SOE Access</span>
-          </NavLink>
+              <NavLink 
+                to="/soe-access-matrix" 
+                onClick={() => { trackButtonClick('Sidebar - SOE Access'); closeMobileMenu(); }}
+                className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-indigo-600 text-white font-bold shadow-md' : 'text-slate-500 dark:text-slate-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-900 dark:hover:text-indigo-300 font-medium'}`}
+              >
+                <ShieldCheck className="w-5 h-5 text-indigo-400" />
+                <span>SOE Access</span>
+              </NavLink>
+            </>
+          )}
         </nav>
         
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
           {/* Theme Toggle Button */}
-          <button 
-            onClick={toggleDarkMode}
-            className="flex items-center justify-between px-4 py-2.5 rounded-xl w-full bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300/80 dark:hover:bg-slate-700 transition-all font-semibold text-sm cursor-pointer"
-          >
-            <div className="flex items-center space-x-3">
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
-              <span>{darkMode ? 'Light Theme' : 'Dark Theme'}</span>
-            </div>
-            <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-300/80 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold">
-              {darkMode ? 'Dark' : 'Light'}
-            </span>
-          </button>
+          {!HIDE_UNRELEASED_FEATURES && (
+            <button 
+              onClick={toggleDarkMode}
+              className="flex items-center justify-between px-4 py-2.5 rounded-xl w-full bg-slate-200/70 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300/80 dark:hover:bg-slate-700 transition-all font-semibold text-sm cursor-pointer"
+            >
+              <div className="flex items-center space-x-3">
+                {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+                <span>{darkMode ? 'Light Theme' : 'Dark Theme'}</span>
+              </div>
+              <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-300/80 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold">
+                {darkMode ? 'Dark' : 'Light'}
+              </span>
+            </button>
+          )}
 
           <button 
             onClick={handleLogout}
@@ -295,7 +307,7 @@ export default function Layout() {
       <main className="flex-1 min-w-0 overflow-auto pt-16 md:pt-0 relative z-0">
         
         {/* Global MA Leave Notification Banner */}
-        {maBannerText && (
+        {!HIDE_UNRELEASED_FEATURES && maBannerText && (
           <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-950 text-white px-4 py-2.5 flex items-center justify-between gap-3 border-b border-purple-700/50 shadow-md sticky top-0 z-40 backdrop-blur-md">
             <div className="flex items-center justify-center gap-2.5 flex-grow text-xs md:text-sm font-semibold tracking-wide">
               <span className="relative flex h-3 w-3">
