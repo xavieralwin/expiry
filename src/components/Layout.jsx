@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link, Calendar, Bell, UserCheck, ShieldCheck, Sun, Moon } from 'lucide-react';
+import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link, Calendar, Bell, UserCheck, ShieldCheck, Sun, Moon, TableProperties } from 'lucide-react';
 import { trackButtonClick } from '../lib/analytics';
 import { IS_DB_MIGRATION_ACTIVE, IS_DB_MIGRATION_COMPLETE } from '../lib/maintenance';
 import MaintenanceModal from './MaintenanceModal';
@@ -242,6 +242,18 @@ export default function Layout() {
           >
             <Clock className="w-5 h-5" />
             <span>Expiring Soon</span>
+          </NavLink>
+
+          <NavLink 
+            to="/tracker" 
+            onClick={() => { trackButtonClick('Sidebar - Tracker'); closeMobileMenu(); }}
+            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-[#c4b5fd] text-violet-950 font-bold shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100'}`}
+          >
+            <TableProperties className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+            <div className="flex items-center justify-between w-full">
+              <span>Tracker</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Live Google Sheet Sync"></span>
+            </div>
           </NavLink>
 
           <NavLink 

@@ -4,6 +4,12 @@ import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
 import { initDb } from './db.js';
 import nodemailer from 'nodemailer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 // Use standard 3001 locally or PORT from env, but let's stick to 8080 if environment provides it
@@ -369,5 +375,89 @@ app.delete('/api/soe-access/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete SOE resource' });
   }
 });
+
+// ==================== GOOGLE SHEET TRACKER API ====================
+const GOOGLE_SHEET_TRACKER_URL = process.env.GOOGLE_SHEET_TRACKER_URL || 'https://script.google.com/macros/s/AKfycbx4PSVnMOJsXjUQMaW46keHRG_3XpJLwLUbn9Kzi9nbdwsroUyPeiVDN9b9eltM2wrLrg/exec';
+
+let trackerCache = null;
+let trackerCacheTimestamp = null;
+const trackerCachePath = path.join(__dirname, '../data/tracker_cache.json');
+
+function loadTrackerCacheFromFile() {
+  try {
+    if (fs.existsSync(trackerCachePath)) {
+      const raw = fs.readFileSync(trackerCachePath, 'utf-8');
+      const parsed = JSON.parse(raw);
+      trackerCache = parsed.rows || [];
+      trackerCacheTimestamp = parsed.lastSynced || new Date().toISOString();
+    }
+  } catch (err) {
+    console.error('Failed to load tracker cache from file:', err);
+  }
+}
+
+loadTrackerCacheFromFile();
+
+async function fetchGoogleSheetData() {
+  const response = await fetch(GOOGLE_SHEET_TRACKER_URL, { redirect: 'follow' });
+  if (!response.ok) throw new Error(`Google Sheet fetch failed: ${response.status} ${response.statusText}`);
+  const rows = await response.json();
+  if (!Array.isArray(rows)) throw new Error('Invalid format returned from Google Sheet');
+
+  trackerCache = rows;
+  trackerCacheTimestamp = new Date().toISOString();
+
+  try {
+    const dir = path.dirname(trackerCachePath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(trackerCachePath, JSON.stringify({
+      lastSynced: trackerCacheTimestamp,
+      totalRows: rows.length,
+      rows: rows
+    }));
+  } catch (err) {
+    console.error('Failed to persist tracker cache to disk:', err);
+  }
+
+  return { rows, lastSynced: trackerCacheTimestamp, totalRows: rows.length };
+}
+
+// GET /api/tracker
+app.get('/api/tracker', async (req, res) => {
+  try {
+    if (!trackerCache || trackerCache.length === 0) {
+      const data = await fetchGoogleSheetData();
+      return res.json(data);
+    }
+    res.json({
+      rows: trackerCache,
+      lastSynced: trackerCacheTimestamp,
+      totalRows: trackerCache.length
+    });
+  } catch (error) {
+    console.error('Tracker API error:', error);
+    if (trackerCache && trackerCache.length > 0) {
+      return res.json({
+        rows: trackerCache,
+        lastSynced: trackerCacheTimestamp,
+        totalRows: trackerCache.length,
+        warning: 'Serving cached data due to network error'
+      });
+    }
+    res.status(500).json({ error: 'Failed to fetch tracker data from Google Sheet' });
+  }
+});
+
+// POST /api/tracker/sync
+app.post('/api/tracker/sync', async (req, res) => {
+  try {
+    const data = await fetchGoogleSheetData();
+    res.json(data);
+  } catch (error) {
+    console.error('Tracker sync error:', error);
+    res.status(500).json({ error: 'Failed to sync with Google Sheet: ' + error.message });
+  }
+});
+
 
 

@@ -9,6 +9,7 @@ import AkamaiRedirects from './pages/AkamaiRedirects';
 import RewriteRules from './pages/RewriteRules';
 import MALeaveTracker from './pages/MALeaveTracker';
 import SOEAccessMatrix from './pages/SOEAccessMatrix';
+import ResourceTracker from './pages/ResourceTracker';
 import Login from './pages/Login';
 import { trackUserVisit } from './lib/analytics';
 
@@ -55,6 +56,7 @@ function App() {
         <Route path="ma-leave-tracker" element={<MALeaveTracker />} />
         <Route path="soe-access-matrix" element={<SOEAccessMatrix />} />
         <Route path="expiring" element={<ExpiringSoon />} />
+        <Route path="tracker" element={<ResourceTracker />} />
         <Route path="vanity" element={<VanityURLs />} />
         <Route path="akamai" element={<AkamaiRedirects />} />
         <Route path="rewrite-rules" element={<RewriteRules />} />

@@ -257,4 +257,79 @@ export async function deleteSOEResource(id) {
   return { success: true, id };
 }
 
+// ==================== GOOGLE SHEET TRACKER API HELPERS ====================
+
+const GOOGLE_SCRIPT_FALLBACK_URL = 'https://script.google.com/macros/s/AKfycbx4PSVnMOJsXjUQMaW46keHRG_3XpJLwLUbn9Kzi9nbdwsroUyPeiVDN9b9eltM2wrLrg/exec';
+
+export async function fetchTrackerData() {
+  try {
+    const res = await fetch(`${API_BASE}/tracker`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.rows) && data.rows.length > 0) {
+        localStorage.setItem('tracker_data_backup', JSON.stringify(data));
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('Backend /api/tracker unreachable, trying direct Google Sheet fallback...', err);
+  }
+
+  // Direct fetch fallback in case backend is down or running purely frontend
+  try {
+    const res = await fetch(GOOGLE_SCRIPT_FALLBACK_URL, { redirect: 'follow' });
+    if (res.ok) {
+      const rows = await res.json();
+      if (Array.isArray(rows) && rows.length > 0) {
+        const payload = {
+          rows,
+          lastSynced: new Date().toISOString(),
+          totalRows: rows.length
+        };
+        localStorage.setItem('tracker_data_backup', JSON.stringify(payload));
+        return payload;
+      }
+    }
+  } catch (err) {
+    console.warn('Direct Google script fetch failed, checking localStorage backup...', err);
+  }
+
+  const stored = localStorage.getItem('tracker_data_backup');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch { /* ignore */ }
+  }
+
+  return { rows: [], lastSynced: null, totalRows: 0 };
+}
+
+export async function syncTrackerData() {
+  try {
+    const res = await fetch(`${API_BASE}/tracker/sync`, { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.rows)) {
+        localStorage.setItem('tracker_data_backup', JSON.stringify(data));
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('Backend /api/tracker/sync unreachable, trying direct Google Sheet fallback...', err);
+  }
+
+  // Direct fetch fallback
+  const res = await fetch(GOOGLE_SCRIPT_FALLBACK_URL, { redirect: 'follow' });
+  if (!res.ok) throw new Error('Failed to fetch from Google Sheet');
+  const rows = await res.json();
+  const payload = {
+    rows,
+    lastSynced: new Date().toISOString(),
+    totalRows: rows.length
+  };
+  localStorage.setItem('tracker_data_backup', JSON.stringify(payload));
+  return payload;
+}
+
+
 
