@@ -168,6 +168,69 @@ export async function initDb() {
     console.log('Seeded initial SOE access list');
   }
 
+  // Calculator / Page Definitions Table
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS calculator_definitions (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      category TEXT DEFAULT 'AEM Page',
+      updatedAt TEXT
+    )
+  `);
+
+  // Seed 4 default pages if empty
+  const calcDefCount = await db.get("SELECT COUNT(*) as count FROM calculator_definitions");
+  if (calcDefCount && calcDefCount.count === 0) {
+    const seedCalculators = [
+      { id: 'calc-1', name: 'Page 1', description: 'AEM Page Component 1', category: 'AEM Page' },
+      { id: 'calc-2', name: 'Page 2', description: 'AEM Page Component 2', category: 'AEM Page' },
+      { id: 'calc-3', name: 'Page 3', description: 'AEM Page Component 3', category: 'AEM Page' },
+      { id: 'calc-4', name: 'Page 4', description: 'AEM Page Component 4', category: 'AEM Page' }
+    ];
+    const now = new Date().toISOString();
+    for (const c of seedCalculators) {
+      await db.run(
+        `INSERT INTO calculator_definitions (id, name, description, category, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+        [c.id, c.name, c.description, c.category, now]
+      );
+    }
+    console.log('Seeded 4 default pages');
+  } else {
+    // Migration: Update existing 'Calculator' names to 'Page'
+    await db.run(
+      `UPDATE calculator_definitions 
+       SET name = REPLACE(name, 'Calculator', 'Page'), 
+           description = REPLACE(description, 'Calculator', 'Page'), 
+           category = 'AEM Page' 
+       WHERE name LIKE 'Calculator%'`
+    );
+  }
+
+  // Calculator Code Versions Table (Diff, Reason & Checker Comments)
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS calculator_code_versions (
+      id TEXT PRIMARY KEY,
+      calculatorId TEXT NOT NULL,
+      versionTag TEXT NOT NULL,
+      codeContent TEXT NOT NULL,
+      previousVersionId TEXT,
+      reasonForChange TEXT NOT NULL,
+      changeSummary TEXT,
+      modifiedBy TEXT,
+      ticketNo TEXT,
+      environment TEXT DEFAULT 'Production',
+      linesAdded INTEGER DEFAULT 0,
+      linesRemoved INTEGER DEFAULT 0,
+      checkerComments TEXT,
+      checkerName TEXT,
+      status TEXT DEFAULT 'Pending Review',
+      createdAt TEXT,
+      updatedAt TEXT
+    )
+  `);
+
   console.log('Database initialized');
   return db;
 }
+

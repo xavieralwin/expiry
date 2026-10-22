@@ -10,6 +10,7 @@ import RewriteRules from './pages/RewriteRules';
 import MALeaveTracker from './pages/MALeaveTracker';
 import SOEAccessMatrix from './pages/SOEAccessMatrix';
 import ResourceTracker from './pages/ResourceTracker';
+import CalculatorDiffTracker from './pages/CalculatorDiffTracker';
 import Login from './pages/Login';
 import { trackUserVisit } from './lib/analytics';
 
@@ -57,6 +58,8 @@ function App() {
         <Route path="soe-access-matrix" element={<SOEAccessMatrix />} />
         <Route path="expiring" element={<ExpiringSoon />} />
         <Route path="tracker" element={<ResourceTracker />} />
+        <Route path="page-tracker" element={<CalculatorDiffTracker />} />
+        <Route path="calculator-tracker" element={<Navigate to="/page-tracker" replace />} />
         <Route path="vanity" element={<VanityURLs />} />
         <Route path="akamai" element={<AkamaiRedirects />} />
         <Route path="rewrite-rules" element={<RewriteRules />} />

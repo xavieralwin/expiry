@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link, Calendar, Bell, UserCheck, ShieldCheck, Sun, Moon, TableProperties } from 'lucide-react';
+import { Activity, Clock, List, LogOut, Globe, LayoutDashboard, Network, Menu, X, Link, Calendar, Bell, UserCheck, ShieldCheck, Sun, Moon, TableProperties, GitCompare } from 'lucide-react';
 import { trackButtonClick } from '../lib/analytics';
 import { IS_DB_MIGRATION_ACTIVE, IS_DB_MIGRATION_COMPLETE } from '../lib/maintenance';
 import MaintenanceModal from './MaintenanceModal';
@@ -253,6 +253,20 @@ export default function Layout() {
             <div className="flex items-center justify-between w-full">
               <span>Tracker</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Live Google Sheet Sync"></span>
+            </div>
+          </NavLink>
+
+          <NavLink 
+            to="/page-tracker" 
+            onClick={() => { trackButtonClick('Sidebar - Page Code Diff'); closeMobileMenu(); }}
+            className={({isActive}) => `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-md shadow-indigo-500/20' : 'text-slate-500 dark:text-slate-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-900 dark:hover:text-purple-300 font-medium'}`}
+          >
+            <GitCompare className="w-5 h-5 text-indigo-400" />
+            <div className="flex items-center justify-between w-full">
+              <span>Codebase</span>
+              <span className="px-1.5 py-0.5 text-[9px] font-extrabold rounded-md bg-purple-500/30 text-purple-200 uppercase tracking-wider">
+                Pages
+              </span>
             </div>
           </NavLink>
 

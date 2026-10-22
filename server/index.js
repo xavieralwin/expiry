@@ -459,5 +459,315 @@ app.post('/api/tracker/sync', async (req, res) => {
   }
 });
 
+// ==========================================
+// CALCULATOR CODE DIFFERENCE TRACKER APIS
+// ==========================================
+
+function computeLineDiffStats(oldText, newText) {
+  if (!oldText) {
+    const count = newText ? newText.split(/\r?\n/).length : 0;
+    return { added: count, removed: 0 };
+  }
+  const oldLines = oldText.split(/\r?\n/);
+  const newLines = newText.split(/\r?\n/);
+  const oldCounts = {};
+  for (const l of oldLines) oldCounts[l] = (oldCounts[l] || 0) + 1;
+  const newCounts = {};
+  for (const l of newLines) newCounts[l] = (newCounts[l] || 0) + 1;
+
+  let added = 0;
+  for (const l of newLines) {
+    if (!oldCounts[l] || oldCounts[l] <= 0) {
+      added++;
+    } else {
+      oldCounts[l]--;
+    }
+  }
+
+  let removed = 0;
+  for (const l of oldLines) {
+    if (!newCounts[l] || newCounts[l] <= 0) {
+      removed++;
+    } else {
+      newCounts[l]--;
+    }
+  }
+  return { added, removed };
+}
+
+// GET /api/calculators - List all 4 calculators with metadata & summary stats
+app.get('/api/calculators', async (req, res) => {
+  try {
+    const calculators = await db.all('SELECT * FROM calculator_definitions ORDER BY id ASC');
+    const enriched = await Promise.all(
+      calculators.map(async (c) => {
+        const stats = await db.get(
+          `SELECT 
+             COUNT(*) as totalVersions,
+             SUM(CASE WHEN status = 'Pending Review' THEN 1 ELSE 0 END) as pendingCount
+           FROM calculator_code_versions 
+           WHERE calculatorId = ?`,
+          [c.id]
+        );
+        const latest = await db.get(
+          `SELECT id, versionTag, modifiedBy, reasonForChange, ticketNo, status, createdAt 
+           FROM calculator_code_versions 
+           WHERE calculatorId = ? 
+           ORDER BY createdAt DESC LIMIT 1`,
+          [c.id]
+        );
+        return {
+          ...c,
+          totalVersions: stats && stats.totalVersions ? stats.totalVersions : 0,
+          pendingCount: stats && stats.pendingCount ? stats.pendingCount : 0,
+          latestVersion: latest || null
+        };
+      })
+    );
+    res.json(enriched);
+  } catch (error) {
+    console.error('Error fetching calculators:', error);
+    res.status(500).json({ error: 'Failed to fetch calculators' });
+  }
+});
+
+// POST /api/calculators - Add a new Page to track
+app.post('/api/calculators', async (req, res) => {
+  try {
+    const { name, description, category } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Page name is required' });
+    }
+    const id = `page-${uuidv4().slice(0, 8)}`;
+    const now = new Date().toISOString();
+    await db.run(
+      `INSERT INTO calculator_definitions (id, name, description, category, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+      [id, name.trim(), (description || '').trim(), category || 'AEM Page', now]
+    );
+    const created = await db.get('SELECT * FROM calculator_definitions WHERE id = ?', [id]);
+    res.status(201).json({
+      ...created,
+      totalVersions: 0,
+      pendingCount: 0,
+      latestVersion: null
+    });
+  } catch (error) {
+    console.error('Error creating page definition:', error);
+    res.status(500).json({ error: 'Failed to create page' });
+  }
+});
+
+// PUT /api/calculators/:id - Rename / edit calculator metadata
+app.put('/api/calculators/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, category } = req.body;
+    const now = new Date().toISOString();
+    await db.run(
+      `UPDATE calculator_definitions SET name = ?, description = ?, category = ?, updatedAt = ? WHERE id = ?`,
+      [name, description, category || 'AEM Page', now, id]
+    );
+    const updated = await db.get('SELECT * FROM calculator_definitions WHERE id = ?', [id]);
+    res.json(updated);
+  } catch (error) {
+    console.error('Error updating calculator definition:', error);
+    res.status(500).json({ error: 'Failed to update calculator' });
+  }
+});
+
+// DELETE /api/calculators/:id - Delete a page and its versions
+app.delete('/api/calculators/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.run('DELETE FROM calculator_definitions WHERE id = ?', [id]);
+    await db.run('DELETE FROM calculator_code_versions WHERE calculatorId = ?', [id]);
+    res.json({ success: true, id });
+  } catch (error) {
+    console.error('Error deleting page definition:', error);
+    res.status(500).json({ error: 'Failed to delete page' });
+  }
+});
+
+// GET /api/calculators/:id/versions - List all versions for a calculator
+app.get('/api/calculators/:id/versions', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const versions = await db.all(
+      `SELECT id, calculatorId, versionTag, previousVersionId, reasonForChange, changeSummary, 
+              modifiedBy, ticketNo, environment, linesAdded, linesRemoved, 
+              checkerComments, checkerName, status, createdAt, updatedAt
+       FROM calculator_code_versions 
+       WHERE calculatorId = ? 
+       ORDER BY createdAt DESC`,
+      [id]
+    );
+    res.json(versions);
+  } catch (error) {
+    console.error('Error fetching calculator versions:', error);
+    res.status(500).json({ error: 'Failed to fetch versions' });
+  }
+});
+
+// GET /api/calculators/versions/:versionId - Get single version with full codeContent
+app.get('/api/calculators/versions/:versionId', async (req, res) => {
+  try {
+    const { versionId } = req.params;
+    const version = await db.get('SELECT * FROM calculator_code_versions WHERE id = ?', [versionId]);
+    if (!version) return res.status(404).json({ error: 'Version not found' });
+    
+    // Also fetch previous version code if exists for direct diff comparison
+    let previousCode = '';
+    if (version.previousVersionId) {
+      const prev = await db.get('SELECT codeContent FROM calculator_code_versions WHERE id = ?', [version.previousVersionId]);
+      if (prev) previousCode = prev.codeContent;
+    }
+
+    res.json({ ...version, previousCode });
+  } catch (error) {
+    console.error('Error fetching version details:', error);
+    res.status(500).json({ error: 'Failed to fetch version details' });
+  }
+});
+
+// POST /api/calculators/:id/versions - Paste & save full code version
+app.post('/api/calculators/:id/versions', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      versionTag, 
+      codeContent, 
+      reasonForChange, 
+      changeSummary, 
+      modifiedBy, 
+      ticketNo, 
+      environment = 'Production',
+      previousVersionId
+    } = req.body;
+
+    if (!codeContent || !reasonForChange) {
+      return res.status(400).json({ error: 'Code content and reason for change are required' });
+    }
+
+    // Determine previous version to diff against
+    let parentId = previousVersionId;
+    let prevCode = '';
+    let latestForCalc = null;
+    if (!parentId) {
+      latestForCalc = await db.get(
+        'SELECT id, versionTag, codeContent FROM calculator_code_versions WHERE calculatorId = ? ORDER BY createdAt DESC LIMIT 1',
+        [id]
+      );
+      if (latestForCalc) {
+        parentId = latestForCalc.id;
+        prevCode = latestForCalc.codeContent;
+      }
+    } else {
+      const parent = await db.get('SELECT id, versionTag, codeContent FROM calculator_code_versions WHERE id = ?', [parentId]);
+      if (parent) {
+        prevCode = parent.codeContent;
+        latestForCalc = parent;
+      }
+    }
+
+    // Automatically calculate version tag if not supplied or empty
+    let tag = (versionTag || '').trim();
+    if (!tag) {
+      if (!latestForCalc) {
+        latestForCalc = await db.get(
+          'SELECT versionTag FROM calculator_code_versions WHERE calculatorId = ? ORDER BY createdAt DESC LIMIT 1',
+          [id]
+        );
+      }
+      if (latestForCalc && latestForCalc.versionTag) {
+        const match = latestForCalc.versionTag.match(/^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?/i);
+        if (match) {
+          const maj = parseInt(match[1] || '1', 10);
+          const min = parseInt(match[2] || '0', 10);
+          const pat = parseInt(match[3] || '0', 10);
+          tag = `v${maj}.${min}.${pat + 1}`;
+        } else {
+          tag = `${latestForCalc.versionTag}.1`;
+        }
+      } else {
+        tag = 'v1.0.0';
+      }
+    }
+
+    const { added, removed } = computeLineDiffStats(prevCode, codeContent);
+    const newId = uuidv4();
+    const now = new Date().toISOString();
+
+    await db.run(
+      `INSERT INTO calculator_code_versions (
+         id, calculatorId, versionTag, codeContent, previousVersionId,
+         reasonForChange, changeSummary, modifiedBy, ticketNo, environment,
+         linesAdded, linesRemoved, checkerComments, checkerName, status, createdAt, updatedAt
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newId,
+        id,
+        tag,
+        codeContent,
+        parentId || null,
+        reasonForChange.trim(),
+        (changeSummary || '').trim(),
+        (modifiedBy || 'Anonymous').trim(),
+        (ticketNo || '').trim(),
+        environment || 'Production',
+        added,
+        removed,
+        '',
+        '',
+        'Pending Review',
+        now,
+        now
+      ]
+    );
+
+    // Update definition timestamp
+    await db.run('UPDATE calculator_definitions SET updatedAt = ? WHERE id = ?', [now, id]);
+
+    const created = await db.get('SELECT * FROM calculator_code_versions WHERE id = ?', [newId]);
+    res.status(201).json(created);
+  } catch (error) {
+    console.error('Error saving calculator version:', error);
+    res.status(500).json({ error: 'Failed to save calculator version' });
+  }
+});
+
+// PUT /api/calculators/versions/:versionId/review - Checker adds review comments and sign-off
+app.put('/api/calculators/versions/:versionId/review', async (req, res) => {
+  try {
+    const { versionId } = req.params;
+    const { checkerComments, checkerName, status } = req.body;
+    const now = new Date().toISOString();
+
+    await db.run(
+      `UPDATE calculator_code_versions 
+       SET checkerComments = ?, checkerName = ?, status = ?, updatedAt = ? 
+       WHERE id = ?`,
+      [checkerComments || '', checkerName || '', status || 'Pending Review', now, versionId]
+    );
+
+    const updated = await db.get('SELECT * FROM calculator_code_versions WHERE id = ?', [versionId]);
+    res.json(updated);
+  } catch (error) {
+    console.error('Error updating checker review:', error);
+    res.status(500).json({ error: 'Failed to update review' });
+  }
+});
+
+// DELETE /api/calculators/versions/:versionId - Delete a version
+app.delete('/api/calculators/versions/:versionId', async (req, res) => {
+  try {
+    const { versionId } = req.params;
+    await db.run('DELETE FROM calculator_code_versions WHERE id = ?', [versionId]);
+    res.json({ success: true, versionId });
+  } catch (error) {
+    console.error('Error deleting version:', error);
+    res.status(500).json({ error: 'Failed to delete version' });
+  }
+});
+
 
 

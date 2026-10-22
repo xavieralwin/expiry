@@ -16,11 +16,11 @@ export async function fetchRecords() {
   if (cachedRecords && (now - cacheTimestamp < CACHE_TTL_MS)) {
     return cachedRecords;
   }
-  
+
   if (activeFetchPromise) {
     return activeFetchPromise;
   }
-  
+
   activeFetchPromise = fetch(`${API_BASE}/urls`)
     .then(response => {
       if (!response.ok) throw new Error('Failed to fetch records');
@@ -36,7 +36,7 @@ export async function fetchRecords() {
       activeFetchPromise = null;
       throw err;
     });
-    
+
   return activeFetchPromise;
 }
 
@@ -330,6 +330,94 @@ export async function syncTrackerData() {
   localStorage.setItem('tracker_data_backup', JSON.stringify(payload));
   return payload;
 }
+
+// ==========================================
+// CALCULATOR CODE DIFFERENCE TRACKER APIS
+// ==========================================
+
+export async function fetchCalculators() {
+  const res = await fetch(`${API_BASE}/calculators`);
+  if (!res.ok) throw new Error('Failed to fetch calculators');
+  return res.json();
+}
+
+export async function createCalculatorDefinition(data) {
+  const res = await fetch(`${API_BASE}/calculators`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to create page');
+  }
+  return res.json();
+}
+
+export async function updateCalculatorDefinition(id, data) {
+  const res = await fetch(`${API_BASE}/calculators/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Failed to update calculator details');
+  return res.json();
+}
+
+export async function deleteCalculatorDefinition(id) {
+  const res = await fetch(`${API_BASE}/calculators/${id}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete page');
+  return res.json();
+}
+
+export async function fetchCalculatorVersions(calculatorId) {
+  const res = await fetch(`${API_BASE}/calculators/${calculatorId}/versions`);
+  if (!res.ok) throw new Error('Failed to fetch versions');
+  return res.json();
+}
+
+export async function fetchVersionDetails(versionId) {
+  const res = await fetch(`${API_BASE}/calculators/versions/${versionId}`);
+  if (!res.ok) throw new Error('Failed to fetch version details');
+  return res.json();
+}
+
+export async function saveCalculatorVersion(calculatorId, data) {
+  const res = await fetch(`${API_BASE}/calculators/${calculatorId}/versions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to save calculator version');
+  }
+  return res.json();
+}
+
+export async function submitCheckerReview(versionId, reviewData) {
+  const res = await fetch(`${API_BASE}/calculators/versions/${versionId}/review`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(reviewData)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Failed to submit checker review');
+  }
+  return res.json();
+}
+
+export async function deleteCalculatorVersion(versionId) {
+  const res = await fetch(`${API_BASE}/calculators/versions/${versionId}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete version');
+  return res.json();
+}
+
 
 
 
